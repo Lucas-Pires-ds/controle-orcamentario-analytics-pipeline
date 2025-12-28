@@ -13,6 +13,7 @@
 Fiz um script python para gerar uma base de dados o mais próximo da realidade possível, para isso apliquei:
 - Regras de sazonalidade como: campanhas de marketing condizentes com o calendário real, gastos com folha aumentados em epoca de 13° salario, centros de custos que gastam mais em determinada epoca do ano, etc.
 - Erros propositais nos dados como espaços extras desnecessários, dados faltantes, chaves estrangeiras que não batem com chaves primárias, etc.
+
 **- Arquiterura:**
 Arquitetura: Optei pelo padrão de camadas (Staging e Trusted) para garantir que o processo de ETL seja rastreável e que erros de importação não interrompam o fluxo de carga.
 
