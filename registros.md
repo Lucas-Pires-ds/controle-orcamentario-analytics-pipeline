@@ -47,3 +47,8 @@ Utilizei views para tratar o dado sujo e testar se o tratamento estava funcionan
 - Criar dashboard no Power BI
 - Validar se o projeto atingiu todas as expectativas
 - Concluir projeto
+
+## [03/01/2026] Criação da tabela dimensão "Fornecedores" e das tabelas fato "Lançamentos" e "Orçamentos"
+### O que foi feito:
+- Tratamento e criação da tabela dimensão "Fornecedores"
+
