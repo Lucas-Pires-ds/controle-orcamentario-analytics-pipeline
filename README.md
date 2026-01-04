@@ -167,6 +167,8 @@ A iniciativa reflete um processo contínuo de desenvolvimento técnico e aprofun
 
 ## 📎 Próximos Passos
 
+* Implementar o pipeline ETL nas tabelas fato fact_lancamentos e fact_orcamentos
+
 * Evoluir a camada Gold
 
 * Publicar dashboards finais
