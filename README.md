@@ -37,6 +37,9 @@ Foi adotado o padrão Medallion Architecture, separando claramente as responsabi
 
 * Objetivo: **garantir que a carga nunca falhe por incompatibilidade de tipos**
 
+> **Nota:** Os caminhos utilizados nos comandos `BULK INSERT` são parametrizáveis e devem ser ajustados conforme o ambiente local de execução.
+
+
 A decisão de manter dados não tipados nesta camada permite que o saneamento ocorra de forma controlada no SQL Server.
 
 ### 🥈 Camada Silver (dim_)
