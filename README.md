@@ -239,7 +239,5 @@ Ao longo do projeto, são explorados principalmente:
 
 * Publicar dashboards finais
 
-* Adicionar diagrama visual da arquitetura
-
 📬 Fique à vontade para explorar o repositório e entrar em contato para feedbacks ou sugestões.
 
