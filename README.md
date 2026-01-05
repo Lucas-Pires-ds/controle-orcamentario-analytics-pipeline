@@ -221,13 +221,14 @@ A camada Gold é destinada ao consumo final no Power BI, utilizando:
 
 ## 📌 Objetivo do Projeto
 
-Este projeto tem como objetivo consolidar e demonstrar competências técnicas em análise de dados, BI e engenharia analítica, por meio da construção de um pipeline completo de dados financeiros.
+Este projeto nasceu como uma forma prática de consolidar meus estudos em análise de dados, BI e engenharia analítica, aplicando esses conceitos na construção de um pipeline completo de dados financeiros.
 
-A iniciativa reflete um processo contínuo de desenvolvimento técnico e aprofundamento em boas práticas de mercado, demonstrando:
+Mais do que o resultado final, o foco está no processo: tomar decisões técnicas, lidar com dados imperfeitos e estruturar uma base analítica confiável, próxima do que acontece no dia a dia de ambientes corporativos.
 
-- Pensamento arquitetural  
-- Rigor em qualidade de dados  
-- Capacidade de transformar dados brutos em ativos analíticos confiáveis  
+Ao longo do projeto, são explorados principalmente:
+- Pensamento arquitetural
+- Cuidado e rigor com qualidade de dados
+- Transformação de dados brutos em informações prontas para análise 
 
 
 ## 📎 Próximos Passos
