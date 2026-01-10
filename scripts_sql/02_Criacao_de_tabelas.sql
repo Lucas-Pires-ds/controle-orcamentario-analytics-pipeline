@@ -65,7 +65,7 @@ CREATE TABLE fact_orcamento(
        status_dado VARCHAR(50) NOT NULL
        CONSTRAINT fact_orcamento_id_orcamento_pk PRIMARY KEY(id_orcamento),
        CONSTRAINT fact_orcamento_ano_ck CHECK(ano <= YEAR(GETDATE()) AND ano >= 2000),
-       CONSTRAINT fact_orcamento_mes_ck CHECK(mes >= 1 AND mes <= 12),
+       CONSTRAINT fact_orcamento_mes_ck CHECK(mes BETWEEN 1 AND 12),
        CONSTRAINT fact_orcamento_id_centro_custo_fk FOREIGN KEY(id_centro_custo) REFERENCES dim_centro_custo(id_cc),
        CONSTRAINT fact_orcamento_id_categoria_fk FOREIGN KEY(id_categoria) REFERENCES dim_categoria(id_categoria),
        CONSTRAINT fact_orcamento_valor_ck CHECK(valor > 0),

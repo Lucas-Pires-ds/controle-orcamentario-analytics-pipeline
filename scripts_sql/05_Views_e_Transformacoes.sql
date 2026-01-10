@@ -86,27 +86,12 @@ SELECT
        CAST(valor_orcado AS DECIMAL(18,2)) AS 'valor_orcado',
        CASE
               WHEN CAST(valor_orcado AS DECIMAL(18,2)) / AVG(CAST(valor_orcado AS DECIMAL(18,2))) 
-              OVER (PARTITION BY id_centro_custo, id_categoria) > 9 THEN 'Dado suspeito' ELSE 'Dado confiavel'
+              OVER (PARTITION BY id_centro_custo, id_categoria) - 1 > 9 THEN 'Dado suspeito' ELSE 'Dado confiavel'
        END AS 'status_dado'
 FROM 
     stg_orcamento
 
 GO
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
