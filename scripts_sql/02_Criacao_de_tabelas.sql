@@ -57,13 +57,15 @@ GO
 
 CREATE TABLE fact_orcamento(
        id_orcamento INT NOT NULL,
+       data_orcamento DATETIME NOT NULL,
        ano INT NOT NULL,
        mes INT NOT NULL,
        id_centro_custo INT NOT NULL,
        id_categoria INT NOT NULL,
-       valor DECIMAL(16,2) NOT NULL,
+       valor DECIMAL(18,2) NOT NULL,
        status_dado VARCHAR(50) NOT NULL
        CONSTRAINT fact_orcamento_id_orcamento_pk PRIMARY KEY(id_orcamento),
+       CONSTRAINT fact_orcamento_data_ck CHECK(data_orcamento BETWEEN '20230101' AND '20241231'),
        CONSTRAINT fact_orcamento_ano_ck CHECK(ano <= YEAR(GETDATE()) AND ano >= 2000),
        CONSTRAINT fact_orcamento_mes_ck CHECK(mes BETWEEN 1 AND 12),
        CONSTRAINT fact_orcamento_id_centro_custo_fk FOREIGN KEY(id_centro_custo) REFERENCES dim_centro_custo(id_cc),
@@ -71,4 +73,6 @@ CREATE TABLE fact_orcamento(
        CONSTRAINT fact_orcamento_valor_ck CHECK(valor > 0),
        CONSTRAINT fact_orcamento_status_dado_ck CHECK(status_dado in ('Dado suspeito', 'Dado confiavel'))
 )
+
+
 

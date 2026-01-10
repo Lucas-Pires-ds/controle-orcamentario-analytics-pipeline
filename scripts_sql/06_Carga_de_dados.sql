@@ -69,6 +69,7 @@ FROM
 
 INSERT INTO fact_orcamento(
     id_orcamento,
+    data_orcamento,
     ano,
     mes,
     id_centro_custo,
@@ -78,14 +79,15 @@ INSERT INTO fact_orcamento(
 )
 SELECT
     id_orcamento,
+    [data],
     ano,
     mes,
     id_centro_custo,
     id_categoria,
     valor_orcado,
     status_dado
-FROM 
-    vw_orcamento
+FROM vw_orcamento
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------- AUDITORIA FINAL -------------------------------------------------------------------------

@@ -79,6 +79,8 @@ CREATE OR ALTER VIEW vw_orcamento AS
 
 SELECT
        CAST(id_orcamento AS INT) AS 'id_orcamento',
+ --      CAST(EOMONTH(DATEFROMPARTS(CAST(ANO AS INT), CAST(mes AS INT), 1)) AS DATETIME) AS 'data',
+       CONVERT(DATETIME, EOMONTH(DATEFROMPARTS(CAST(ANO AS INT), CAST(MES AS INT), 1)), 126) AS 'data',
        CAST(ano AS INT) AS 'ano',
        CAST(mes AS INT) AS 'mes',
        CAST(id_centro_custo AS INT) AS 'id_centro_custo',
@@ -91,7 +93,11 @@ SELECT
 FROM 
     stg_orcamento
 
+
+
 GO
+
+
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
