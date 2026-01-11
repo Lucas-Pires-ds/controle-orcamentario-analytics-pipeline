@@ -48,6 +48,8 @@ CREATE OR ALTER VIEW vw_fornecedores AS
 GO
 
 
+
+GO
 -- fact_lancamentos
 
 CREATE OR ALTER VIEW vw_lancamentos AS 
@@ -93,10 +95,7 @@ SELECT
 FROM 
     stg_orcamento
 
-
-
 GO
-
 
 
 
