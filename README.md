@@ -141,19 +141,20 @@ Após a aplicação das regras de ETL e qualidade de dados:
 O valor do pipeline não está apenas na visualização final, mas na **confiabilidade da base analítica construída**, garantindo que as análises reflitam o negócio de forma consistente e rastreável.
 
 
-## ⚙️ Decisões Técnicas de ETL
+### Correção de Tipagem na Ingestão
 
-### Conversão de Tipagem Complexa
+Durante a ingestão, alguns identificadores numéricos foram importados como strings decimais (ex: `"101.0"`), o que impede a conversão direta para `INT` no SQL Server.
 
-Para tratar IDs numéricos importados como strings decimais, foi utilizada a abordagem:
+Para tratar esse cenário, foi aplicada a conversão:
 
 CAST(CAST(col AS FLOAT) AS INT)
 
-Essa conversão evita falhas comuns do SQL Server ao converter strings com ponto decimal diretamente para inteiros.
+Essa abordagem garante a correta tipagem dos identificadores e evita falhas de conversão durante o processo de ETL.
+
 
 ---
 
-### Padronização Semântica de Strings
+### Tratamento e Padronização de Texto
 
 Foi implementada uma lógica personalizada de padronização textual:
 
@@ -166,7 +167,7 @@ O objetivo é melhorar a leitura analítica sem alterar o significado dos dados.
 
 ---
 
-### Integridade e Saneamento
+### Integridade e Limpeza
 
 - Registros com IDs nulos foram identificados como causa raiz de duplicidades
 - Esses registros foram descartados ainda nas Views
@@ -303,7 +304,6 @@ O foco está no processo:
 
 - Evoluir a camada Gold
 - Publicar dashboards finais no Power BI
-- Inserir tabela de resultado do processo de ETL
 
 > **Status:** projeto em desenvolvimento contínuo.
 
