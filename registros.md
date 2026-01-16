@@ -129,11 +129,6 @@ O projeto evoluiu de um pipeline de carga e saneamento para um **modelo dimensio
 - **Percentuais:** calculados apenas quando existe orçamento válido.
 - **Gastos sem orçamento:** mantidos no modelo com flags explícitas, sem mascaramento via `COALESCE`.
 
-### Postura analítica adotada:
-- Preferência por **dados semanticamente corretos** em vez de “dados bonitos”.
-- Decisão consciente de **empurrar parte da lógica interpretativa para a camada de visualização**, evitando sobrecarga indevida no SQL.
-- Código escrito com foco em **escalabilidade, legibilidade e defesa técnica** (junior consciente, não “SQL mágico”).
-
 ### Status ao final do dia:
 - `vw_gold_mensal` **finalizada e validada**.
 - Arquitetura Gold definida e documentada conceitualmente.
@@ -144,3 +139,45 @@ O projeto evoluiu de um pipeline de carga e saneamento para um **modelo dimensio
 - [ ] Integração da Gold com Power BI
 - [ ] Revisão final do README com decisões arquiteturais consolidadas
 
+
+## [15/01/2026] Redefinição da Camada Gold e Consolidação da View de Orçamento  
+
+### O que foi feito:  
+- **Revisão da arquitetura da Camada Gold:** após discussão e validação técnica, foi tomada a decisão de **abandonar a Gold mensal e a Gold diária**.  
+- **Nova abordagem definida:** a Camada Gold passa a ser composta por **duas views distintas e complementares**:  
+  - `vw_gold_orcamento`: visão do planejamento financeiro (orçado).  
+  - `vw_gold_lancamentos`: visão dos gastos realizados (transacional).  
+- O confronto **Orçado vs Realizado** ficará **exclusivamente no Power BI**, evitando complexidade excessiva e riscos de erro no SQL.  
+
+### Motivo da decisão:  
+- Misturar orçamento (mensal) e lançamentos (diários) na mesma view aumentava muito a complexidade e o risco de duplicações ou leituras incorretas.  
+- Separar as responsabilidades deixa o modelo mais simples, mais confiável e mais fácil de manter.  
+- Essa abordagem reflete melhor um cenário real de BI, onde a camada de dados entrega fatos claros e o BI faz a combinação final.  
+
+### Desenvolvimento da `vw_gold_orcamento`:  
+- Criação de uma view Gold dedicada apenas ao **orçamento mensal**, agregada por:  
+  - Ano  
+  - Mês  
+  - Centro de custo  
+  - Categoria  
+- Implementação das principais métricas analíticas:  
+  - **Orcado_mensal:** valor mensal do orçamento (tratando zero como ausência de informação).  
+  - **Orcado_YTD:** orçamento acumulado no ano, respeitando a ordem dos meses.  
+  - **Peso_centro_custo:** participação do centro de custo no orçamento total do mês.  
+  - **Peso_categoria:** participação da categoria no orçamento total do mês.  
+  - **Media_mensal:** média histórica do orçamento por centro de custo e categoria.  
+
+### Tratamento de qualidade e estabilidade:  
+- Uso consistente de `NULLIF` para evitar divisões por zero e leituras enganosas.  
+- Decisão consciente de **não forçar flags sem ocorrência real** (ex.: não orçado ou valor atípico), mantendo a estrutura preparada, mas sem “inventar problema”.  
+- Implementação de uma **flag de valor atípico** baseada em comparação simples com a média histórica, apenas como apoio exploratório, não como regra de negócio crítica.  
+
+### Boas práticas adotadas:  
+- Padronização de aliases e nomes de colunas para facilitar leitura e consumo no Power BI.  
+- Identação e organização do código focadas em clareza, não em “SQL rebuscado”.  
+- Lógica escrita de forma defensiva, priorizando números corretos em vez de métricas “bonitas”.  
+
+### Status ao final do dia:  
+- `vw_gold_orcamento` **finalizada, revisada e pronta para uso**.  
+- Arquitetura Gold **simplificada e mais robusta**.  
+- Base sólida criada para a construção da `vw_gold_lancamentos` e do dashboard final.
