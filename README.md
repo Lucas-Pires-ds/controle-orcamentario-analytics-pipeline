@@ -3,10 +3,12 @@
 ## 📌 TL;DR
 - Pipeline ETL completo em **SQL Server** (Bronze → Silver → Gold)
 - Forte foco em **qualidade de dados**, integridade referencial e rastreabilidade
-- Modelo dimensional para análise de **Budget vs Actual**
-- Camada Gold separada em:
-  - Visão **mensal** (executiva)
-  - Visão **diária** (acompanhamento intramês)
+- Modelo dimensional para análise financeira e orçamentária
+- Camada Gold composta por **3 views analíticas**:
+  - **Orçamento**
+  - **Lançamentos**
+  - **Realizado**
+- Cruzamento **Orçado vs Realizado realizado no Power BI**
 - Métricas prontas para consumo no **Power BI**, com mínima lógica em DAX
 
 ---
@@ -25,9 +27,9 @@ O pipeline foi desenvolvido utilizando **SQL Server**, **Python** e **Power BI**
 
 ---
 
-## 🏢 Contexto do Negócio — Zenith Serviços
+## 🏢 Contexto do Negócio — Sage
 
-A **Zenith Serviços** é uma empresa fictícia do setor de serviços, criada como contexto para a construção e validação do pipeline de dados apresentado neste projeto.
+A **Sage** é uma empresa fictícia do setor de serviços, criada como contexto para a construção e validação do pipeline de dados apresentado neste projeto.
 
 A empresa opera com múltiplos **centros de custo** (administrativo, operações e marketing), realiza **planejamento orçamentário mensal** e registra **lançamentos financeiros diários** relacionados a fornecedores, campanhas e despesas operacionais.
 
@@ -43,19 +45,19 @@ O projeto foi desenvolvido para estruturar, tratar e padronizar esses dados ao l
 
 ## 🎯 Problema de Negócio
 
-Empresas de serviços, como a Zenith Serviços, frequentemente enfrentam desafios como:
+Empresas de serviços, como a Sage, frequentemente enfrentam desafios como:
 
 - Dados financeiros vindos de múltiplas fontes
 - Falta de validações antes da análise
 - Dificuldade em garantir consistência entre categorias, centros de custo e campanhas
-- Baixa confiabilidade nos indicadores de orçamento vs realizado
+- Baixa confiabilidade nos indicadores financeiros e orçamentários
 
 Este projeto resolve esses pontos ao:
 
 - Centralizar os dados em um pipeline único
 - Aplicar regras de saneamento ainda na camada de dados
 - Garantir integridade referencial e semântica
-- Entregar métricas prontas para análise orçamentária
+- Entregar bases analíticas confiáveis para consumo no Power BI
 
 ---
 
@@ -156,6 +158,7 @@ Após a aplicação das regras de ETL e qualidade de dados:
 
 O valor do pipeline não está apenas na visualização final, mas na **confiabilidade da base analítica construída**, garantindo que as análises reflitam o negócio de forma consistente e rastreável.
 
+---
 
 ### Correção de Tipagem na Ingestão
 
@@ -166,7 +169,6 @@ Para tratar esse cenário, foi aplicada a conversão:
 CAST(CAST(col AS FLOAT) AS INT)
 
 Essa abordagem garante a correta tipagem dos identificadores e evita falhas de conversão durante o processo de ETL.
-
 
 ---
 
@@ -247,54 +249,82 @@ Durante o profiling da `stg_lancamentos`, foram identificados:
 
 ## 🥇 Camada Gold — Decisões Analíticas
 
-A camada Gold foi desenhada a partir das necessidades de acompanhamento orçamentário da Zenith Serviços, equilibrando visão executiva e controle operacional.
+A camada Gold foi desenhada a partir das necessidades analíticas da Sage, com foco em **simplicidade, clareza semântica e redução de lógica no Power BI**.
 
-Seu objetivo é **reduzir lógica no Power BI**, entregando métricas consolidadas e consistentes diretamente na camada de dados.
-
-Durante o desenvolvimento, optou-se por separar a camada em **duas views**, cada uma com um propósito claro.
-
----
-
-### 📊 Gold Mensal — Orçado vs Realizado
-
-View: `vw_gold_mensal`  
-Granularidade: mensal
-
-Perguntas atendidas:
-- O orçamento foi respeitado?
-- Onde estão os maiores desvios?
-- Quais centros e categorias concentram gastos?
-
-Principais métricas:
-- Orçado
-- Realizado
-- Desvio
-- % Atingimento
-- Pesos relativos
-- Métricas YTD
+Diferente de uma camada puramente agregada, a Gold foi estruturada em **três views analíticas independentes**, cada uma com responsabilidade bem definida.  
+O **cruzamento entre orçamento e realizado é realizado no Power BI**, e não na camada de dados, por decisão arquitetural consciente.
 
 ---
 
-### 📅 Gold Diária — Acompanhamento Intramês
+### 📊 vw_gold_orcamento
 
-View voltada ao acompanhamento operacional.
+Responsabilidades:
 
-Permite analisar:
-- Consumo acumulado no mês
-- Ritmo de gasto ao longo dos dias
-- Momento de surgimento de desvios
+- Consolidação mensal de orçamento
 
-A separação evita mistura de granularidade e simplifica o consumo analítico.
+- Cálculo de **YTD**
 
----
+- Pesos relativos por **centro de custo** e **categoria**
 
-### Regras Analíticas
+- Média histórica mensal
 
-- Percentuais nulos quando não há orçamento
-- Prevenção de divisão por zero com `NULLIF`
+- Flag de valores atípicos via desvio em relação à média
+
+- Proteção contra divisão por zero (NULLIF)
+
+- Nenhum cruzamento com realizado
+
+### 📄 vw_gold_lancamentos
+
+Responsabilidades:
+
+- Visão detalhada e auditável dos lançamentos diários
+
+- Preservação de valor_original e valor tratado
+
+- Flags de centro de custo coringa
+
+- Enriquecimento dimensional completo (centro de custo, categoria, fornecedor, campanha)
+
+- Nenhuma agregação (base para drill-down)
+
+### 📈 vw_gold_realizado
+
+Responsabilidades:
+
+- Consolidação mensal do realizado
+
+- Uso consciente da dim_calendario para continuidade temporal
+
+- Métricas avançadas:
+
+  - YTD
+
+  - MoM absoluto e percentual
+
+  - YoY absoluto e percentual
+
+  - Média mensal
+
+  - Pesos relativos
+
+  - Flags de anomalia
+
+- Manutenção da rastreabilidade do centro de custo coringa
+
+- Nenhum cálculo de Orçado vs Realizado
+
+### Regras Analíticas 
+
 - Uso de `COALESCE` para consistência visual
 
-Essas regras tornam o modelo mais resiliente e confiável.
+- Prevenção de divisão por zero com `NULLIF`
+
+- Continuidade temporal garantida via `dim_calendario`
+
+- Flags explícitas para valores atípicos
+
+- Cálculos complexos concentrados na Gold quando necessário, o restante será feito no Power BI
 
 ---
 
@@ -320,8 +350,8 @@ O foco está no processo:
 
 ## 📎 Próximos Passos
 
-- Evoluir a camada Gold
-- Publicar dashboards finais no Power BI
+- Evoluir análises no Power BI
+- Publicar dashboards finais
 
 > **Status:** projeto em desenvolvimento contínuo.
 
