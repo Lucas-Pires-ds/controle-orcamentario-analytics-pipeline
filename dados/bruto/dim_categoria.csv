@@ -1,0 +1,52 @@
+﻿id_categoria,id_centro_custo,nome_categoria
+101.0,1.0,Manutenção predial
+102.0,1.0,Aluguel/Condomínio
+103.0,1.0,Energia/Água/Utilidades
+104.0,1.0,Materiais de escritório
+105.0,1.0,Serviços administrativos terceirizados
+106.0,2.0,Endomarketing
+107.0,2.0,Campanhas sazonais
+108.0,2.0,Propaganda e publicidade
+109.0,2.0,Produção de conteúdo
+110.0,2.0,Ferramentas digitais
+111.0,3.0,Despesas processuais
+112.0,3.0,Honorários advocatícios
+113.0,3.0,Licenças e registros legais
+114.0,3.0,Consultoria jurídica
+115.0,3.0,Custas cartoriais
+116.0,4.0,Licenças de software
+117.0,4.0,Infraestrutura/Servidores
+118.0,4.0,Suporte técnico
+119.0,4.0,Equipamentos de TI
+120.0,4.0,Segurança da informação
+121.0,5.0,Benefícios
+122.0,5.0,Treinamento
+123.0,5.0,Recrutamento e seleção
+124.0,5.0,Eventos internos
+125.0,5.0,Folha de pagamento
+126.0,6.0,Tarifas bancárias
+127.0,6.0,Serviços contábeis
+128.0,6.0,Auditoria externa
+129.0,6.0,Sistemas/ERP
+130.0,6.0,Meios de pagamento
+131.0,7.0,Comissões
+132.0,7.0,Ferramentas de CRM
+133.0,7.0,Despesas de prospecção
+134.0,7.0,Viagens comerciais
+135.0,7.0,Eventos/Feiras
+136.0,8.0,Insumos operacionais
+137.0,8.0,Serviços terceirizados
+138.0,8.0,Logística/Transporte
+139.0,8.0,Manutenção operacional
+140.0,8.0,Custos variáveis
+141.0,9.0,Limpeza/Conservação
+142.0,9.0,Segurança patrimonial
+143.0,9.0,Manutenção preventiva
+144.0,9.0,Jardinagem
+145.0,9.0,Gestão de contratos
+146.0,10.0,Projetos estratégicos
+147.0,10.0,Consultorias pontuais
+148.0,10.0,Implementação de sistemas
+149.0,10.0,Reestruturações internas
+150.0,10.0,Despesas extraordinárias
+,,ALUGUEL/CONDOMÍNIO
