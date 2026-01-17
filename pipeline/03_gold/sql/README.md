@@ -63,45 +63,6 @@ ORDER BY Orcado_mensal DESC
 
 ---
 
-### 📄 vw_gold_lancamentos
-
-**Propósito**: Base detalhada auditável para drill-down e investigação
-
-**Granularidade**: Transação (diária)
-
-**Campos principais**:
-- Ano, Mês, Ano_mes, Data do lançamento
-- Centro de custo, Categoria (IDs e nomes)
-- Fornecedor, Campanha (IDs e nomes, com tratamento de nulos)
-- Valor tratado e valor original
-- Status de pagamento
-- Flag de centro de custo coringa
-
-**Características**:
-- Preserva granularidade original da `fact_lancamentos`
-- Enriquecimento dimensional completo via LEFT JOINs
-- Nenhuma agregação aplicada (permite drill-down total)
-- Tratamento de campanhas nulas: `COALESCE(nome_campanha, 'Sem_campanha')`
-
-**Exemplo de uso**:
-```sql
-SELECT 
-    Data_lancamento,
-    Centro_de_custo,
-    Categoria,
-    Fornecedor,
-    Campanha,
-    Valor,
-    Status_pagamento,
-    Flag_centro_custo_coringa
-FROM vw_gold_lancamentos
-WHERE Ano = 2024 AND Mes = 12
-  AND Flag_centro_custo_coringa = 'Nao'
-ORDER BY Valor DESC
-```
-
----
-
 ### 📈 vw_gold_realizado
 
 **Propósito**: Consolidação mensal do realizado com métricas avançadas de análise temporal
@@ -152,11 +113,51 @@ ORDER BY Realizado DESC
 
 ---
 
+
+### 📄 vw_gold_lancamentos
+
+**Propósito**: Base detalhada auditável para drill-down e investigação
+
+**Granularidade**: Transação (diária)
+
+**Campos principais**:
+- Ano, Mês, Ano_mes, Data do lançamento
+- Centro de custo, Categoria (IDs e nomes)
+- Fornecedor, Campanha (IDs e nomes, com tratamento de nulos)
+- Valor tratado e valor original
+- Status de pagamento
+- Flag de centro de custo coringa
+
+**Características**:
+- Preserva granularidade original da `fact_lancamentos`
+- Enriquecimento dimensional completo via LEFT JOINs
+- Nenhuma agregação aplicada (permite drill-down total)
+- Tratamento de campanhas nulas: `COALESCE(nome_campanha, 'Sem_campanha')`
+
+**Exemplo de uso**:
+```sql
+SELECT 
+    Data_lancamento,
+    Centro_de_custo,
+    Categoria,
+    Fornecedor,
+    Campanha,
+    Valor,
+    Status_pagamento,
+    Flag_centro_custo_coringa
+FROM vw_gold_lancamentos
+WHERE Ano = 2024 AND Mes = 12
+  AND Flag_centro_custo_coringa = 'Nao'
+ORDER BY Valor DESC
+```
+
+---
+
 ## 🎯 Decisões de Arquitetura
 
 ### Separação em 3 Views Independentes
 
-A camada Gold foi dividida em views especializadas (Orçamento, Lançamentos, Realizado) ao invés de uma view consolidada.
+A camada Gold foi dividida em views especializadas (Orçamento, Realizado e Lançamentos) ao invés de uma view consolidada.
 
 **Justificativa**:
 

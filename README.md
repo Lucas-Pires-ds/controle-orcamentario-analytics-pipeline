@@ -2,10 +2,7 @@
 
 > Pipeline completo de ETL simulando gestão orçamentária corporativa, com foco em qualidade de dados e modelagem dimensional
 
-![Status](https://img.shields.io/badge/status-em_desenvolvimento-yellow)
-![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?logo=microsoft-sql-server&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
-![Power BI](https://img.shields.io/badge/Power_BI-F2C811?logo=powerbi&logoColor=black)
+
 
 ---
 
@@ -38,9 +35,6 @@ O pipeline desenvolvido centraliza, trata e padroniza esses dados ao longo de ca
 ## 🏗️ Arquitetura
 
 O projeto segue o padrão **Medallion Architecture** (Bronze → Silver → Gold), com separação clara de responsabilidades:
-```
-CSV → Bronze (ingestão) → Silver (limpeza + modelo dimensional) → Gold (métricas) → Power BI
-```
 
 ![Arquitetura do Pipeline](docs_e_imagens/diagrama_pipeline_de_dados.png)
 
@@ -48,7 +42,7 @@ CSV → Bronze (ingestão) → Silver (limpeza + modelo dimensional) → Gold (m
 
 - **🥉 Bronze**: Ingestão de dados brutos via Python + BULK INSERT
 - **🥈 Silver**: Modelo dimensional (Star Schema) com integridade referencial
-- **🥇 Gold**: Views analíticas especializadas (Orçamento, Lançamentos, Realizado)
+- **🥇 Gold**: Views analíticas especializadas (Orçamento, Realizado, Lançamentos)
 
 📖 **[Documentação completa do pipeline](pipeline/)**
 
@@ -149,6 +143,6 @@ Este projeto faz parte de um portfólio de dados, desenvolvido com foco em boas 
 
 A documentação técnica completa de cada etapa está disponível nos respectivos diretórios do repositório.
 
-Feedbacks e sugestões são bem-vindos através das issues do GitHub ou por mensagem no meu ![linkedin:](https://www.linkedin.com/in/lucas-pires-da-hora/).
+Feedbacks e sugestões são bem-vindos através das issues do GitHub ou por mensagem no meu **[Linkedin:](https://www.linkedin.com/in/lucas-pires-da-hora/)**.
 
 ---

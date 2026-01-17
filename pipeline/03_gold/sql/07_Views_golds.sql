@@ -129,45 +129,6 @@ FROM
 
 GO
 
-
--- GOLD LANCAMENTOS
-
-CREATE OR ALTER VIEW vw_gold_lancamentos AS
-
-
-SELECT 
-       YEAR(FL.data_lancamento) AS 'Ano',
-       MONTH(FL.data_lancamento) AS 'Mes',
-       FORMAT(FL.data_lancamento, 'yyyy_MM') AS 'Ano_mes',
-       FL.id_lancamento AS 'ID_Lancamento',
-       FL.data_lancamento AS 'Data_lancamento',
-       FL.id_centro_custo AS 'ID_Centro_de_custo',
-       CC.nome_cc AS 'Centro_de_custo',
-       CAT.id_categoria AS 'ID_Categoria',
-       CAT.nome_categoria AS 'Categoria',
-       FL.id_fornecedor AS 'ID_Fornecedor',
-       DF.nome_forn AS 'Fornecedor',
-       FL.id_campanha AS 'ID_Campanha',
-       COALESCE(MKT.nome_campanha, 'Sem_campanha') AS 'Campanha',
-       FL.valor AS 'Valor',
-       FL.valor_original AS 'Valor_original',
-       FL.status_pagamento AS 'Status_pagamento',
-       CASE WHEN FL.id_centro_custo = -1 THEN 'Sim' ELSE 'Nao' END AS 'Flag_centro_custo_coringa'
-FROM fact_lancamentos FL  
-       LEFT JOIN dim_centro_custo CC
-              ON CC.id_cc = FL.id_centro_custo
-       LEFT JOIN dim_categoria CAT  
-              ON CAT.id_categoria = FL.id_categoria
-       LEFT JOIN dim_fornecedores DF 
-              ON DF.id_forn = FL.id_fornecedor
-       LEFT JOIN dim_camp_marketing MKT
-              ON MKT.id_camp = FL.id_campanha
-
-
-
-GO
-
-
 -- GOLD REALIZADO
 
 CREATE OR ALTER VIEW vw_gold_realizado AS 
@@ -329,3 +290,43 @@ FROM
                             AND B.Mes = CAL.mes
 
 GO
+
+
+-- GOLD LANCAMENTOS
+
+CREATE OR ALTER VIEW vw_gold_lancamentos AS
+
+
+SELECT 
+       YEAR(FL.data_lancamento) AS 'Ano',
+       MONTH(FL.data_lancamento) AS 'Mes',
+       FORMAT(FL.data_lancamento, 'yyyy_MM') AS 'Ano_mes',
+       FL.id_lancamento AS 'ID_Lancamento',
+       FL.data_lancamento AS 'Data_lancamento',
+       FL.id_centro_custo AS 'ID_Centro_de_custo',
+       CC.nome_cc AS 'Centro_de_custo',
+       CAT.id_categoria AS 'ID_Categoria',
+       CAT.nome_categoria AS 'Categoria',
+       FL.id_fornecedor AS 'ID_Fornecedor',
+       DF.nome_forn AS 'Fornecedor',
+       FL.id_campanha AS 'ID_Campanha',
+       COALESCE(MKT.nome_campanha, 'Sem_campanha') AS 'Campanha',
+       FL.valor AS 'Valor',
+       FL.valor_original AS 'Valor_original',
+       FL.status_pagamento AS 'Status_pagamento',
+       CASE WHEN FL.id_centro_custo = -1 THEN 'Sim' ELSE 'Nao' END AS 'Flag_centro_custo_coringa'
+FROM fact_lancamentos FL  
+       LEFT JOIN dim_centro_custo CC
+              ON CC.id_cc = FL.id_centro_custo
+       LEFT JOIN dim_categoria CAT  
+              ON CAT.id_categoria = FL.id_categoria
+       LEFT JOIN dim_fornecedores DF 
+              ON DF.id_forn = FL.id_fornecedor
+       LEFT JOIN dim_camp_marketing MKT
+              ON MKT.id_camp = FL.id_campanha
+
+
+
+GO
+
+

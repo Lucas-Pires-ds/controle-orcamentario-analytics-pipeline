@@ -72,8 +72,8 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 
 **Views implementadas**:
 - `vw_gold_orcamento`: Consolidação mensal do orçamento
-- `vw_gold_lancamentos`: Base detalhada para drill-down
 - `vw_gold_realizado`: Consolidação mensal do realizado com métricas avançadas
+- `vw_gold_lancamentos`: Base detalhada para drill-down
 
 **Decisão arquitetural**: Cruzamento Orçado vs Realizado é realizado no Power BI, não na camada de dados
 

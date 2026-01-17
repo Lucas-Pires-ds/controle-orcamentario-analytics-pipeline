@@ -311,7 +311,7 @@ A tabela `fact_lancamentos` mantém duas colunas de valor:
 - `valor`: Tratado com `ABS()`, sempre positivo, usado em cálculos
 - `valor_original`: Preserva sinal original para auditoria
 
-Essa redundância defensiva permite investigar posteriormente se valores negativos eram legítimos.
+Essa decisão permite investigar posteriormente se valores negativos eram legítimos.
 
 ### Sinalização ao Invés de Remoção de Outliers
 
