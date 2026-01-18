@@ -37,6 +37,7 @@ WITH BASE AS (
                      FO.status_dado
               )
 SELECT 
+       EOMONTH(DATEFROMPARTS(Ano, Mes, 1)) AS 'Data_de_orcamento',
        Ano,
        Mes,
        ID_centro_de_custo,
@@ -164,6 +165,7 @@ GROUP BY
 )
 
 SELECT
+       EOMONTH(DATEFROMPARTS(B.Ano, B.Mes, 1)) AS 'Data_realizacao',
        B.Ano,
        B.Mes,
        B.Ano_mes,

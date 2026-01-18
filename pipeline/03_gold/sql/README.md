@@ -38,6 +38,7 @@ gold/
 
 **Campos principais**:
 - Dimensões: Ano, Mês, Centro de custo, Categoria
+- **Data_de_orcamento** (último dia do mês via `EOMONTH` - para relacionamento no BI)
 - Valor orçado mensal
 - Orçado YTD (acumulado no ano)
 - Peso relativo por centro de custo
@@ -71,6 +72,7 @@ ORDER BY Orcado_mensal DESC
 
 **Campos principais**:
 - Dimensões: Ano, Mês, Centro de custo, Categoria
+- **Data_realizacao** (último dia do mês via `EOMONTH` - para relacionamento no BI)
 - Valor realizado mensal
 - Realizado YTD (acumulado no ano)
 - MoM absoluto e percentual (Month over Month)
