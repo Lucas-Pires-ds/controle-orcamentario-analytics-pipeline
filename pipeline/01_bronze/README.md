@@ -136,7 +136,7 @@ CREATE TABLE stg_lancamentos (
 ### 3. Carga via BULK INSERT
 ```sql
 BULK INSERT stg_lancamentos 
-FROM 'C:\Projeto controle orcamentario\dados\bruto\fact_lancamentos.csv'
+FROM 'C:\Projeto controle orcamentario\dados\raw\fact_lancamentos.csv'
 WITH (
     FORMAT = 'CSV',
     FIRSTROW = 2,

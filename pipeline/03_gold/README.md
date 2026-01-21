@@ -393,6 +393,6 @@ As views Gold são consumidas no **Power BI**, onde:
 - Visualizações e KPIs são construídos sobre esta base confiável
 - Filtros e slicers permitem análise interativa
 
-📖 **[Documentação dos Dashboards](../../dashboard/)**
+📖 **[Documentação dos Dashboards](../../dashboards/)**
 
 ---

@@ -44,12 +44,12 @@ GO
 -- 3. Importação
 
 -- Ajuste o caminho conforme o seu ambiente
-BULK INSERT stg_lancamentos FROM 'C:\Projeto controle orcamentario\dados\bruto\fact_lancamentos.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
-BULK INSERT stg_orcamento FROM 'C:\Projeto controle orcamentario\dados\bruto\fact_orcamento.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
-BULK INSERT stg_dim_centro_custo FROM 'C:\Projeto controle orcamentario\dados\bruto\dim_centro_custo.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
-BULK INSERT stg_dim_categoria FROM 'C:\Projeto controle orcamentario\dados\bruto\dim_categoria.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
-BULK INSERT stg_dim_fornecedores FROM 'C:\Projeto controle orcamentario\dados\bruto\dim_fornecedores.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
-BULK INSERT stg_dim_campanha FROM 'C:\Projeto controle orcamentario\dados\bruto\dim_campanha_marketing.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+BULK INSERT stg_lancamentos FROM 'C:\Projeto controle orcamentario\dados\raw\fact_lancamentos.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+BULK INSERT stg_orcamento FROM 'C:\Projeto controle orcamentario\dados\raw\fact_orcamento.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+BULK INSERT stg_dim_centro_custo FROM 'C:\Projeto controle orcamentario\dados\raw\dim_centro_custo.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+BULK INSERT stg_dim_categoria FROM 'C:\Projeto controle orcamentario\dados\raw\dim_categoria.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+BULK INSERT stg_dim_fornecedores FROM 'C:\Projeto controle orcamentario\dados\raw\dim_fornecedores.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+BULK INSERT stg_dim_campanha FROM 'C:\Projeto controle orcamentario\dados\raw\dim_campanha_marketing.csv' WITH (FORMAT = 'CSV', FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
 GO
 
 -- 4. Verificação

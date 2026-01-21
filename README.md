@@ -92,7 +92,7 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
   - **[pipeline/bronze/](pipeline/01_bronze/)** → Ingestão e scripts Python/SQL
   - **[pipeline/silver/](pipeline/02_silver/)** → Validações, transformações e modelo dimensional
   - **[pipeline/gold/](pipeline/03_gold/)** → Views analíticas e métricas calculadas
-- **[dashboards/](dashboard/)** → Visualizações Power BI e decisões de BI
+- **[dashboards/](dashboards/)** → Visualizações Power BI e decisões de BI
 
 ---
 
@@ -142,6 +142,13 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
 - Transformações via Views para auditoria completa
 - Preservação de valores originais para investigação
 - Flags de qualidade em toda a pipeline
+
+### 5. Sistema de Alertas Preventivos 
+
+- Monitoramento intramês baseado em mediana histórica
+- Alertas de desvio de ritmo de gasto antes do fechamento
+- Cálculo robusto contra outliers
+- Flags categorizadas (Abaixo / Dentro / Acima do normal)
 
 ---
 
