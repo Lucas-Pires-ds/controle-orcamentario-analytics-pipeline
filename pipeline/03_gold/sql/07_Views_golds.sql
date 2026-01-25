@@ -405,7 +405,7 @@ SELECT
               ELSE 'Acima_do_normal'
               END AS 'Flag_alerta_gasto' ,
        FL.valor_original AS 'Valor_original',      
-       FL.status_pagamento AS 'Status_pagamento',
+       REPLACE(FL.status_pagamento,'Aberto', 'Pendente') AS 'Status_pagamento',
        CASE 
               WHEN FL.id_centro_custo = -1 
               THEN 'Sim' ELSE 'Nao' 

@@ -113,7 +113,7 @@ O projeto evoluiu de um pipeline de carga e saneamento para um **modelo dimensio
 - **Tratamento consciente de NULL vs 0:**
   - Decisão de **não converter ausência de orçamento em zero**, preservando `NULL` para evitar interpretações analíticas incorretas.
   - Uso sistemático de `NULLIF` em divisões para evitar *divide by zero* e manter estabilidade do modelo.
-- **Separação semântica entre “Não orçado” e “Orçado = 0”:**
+- **Separação semântica entre "Não orçado" e "Orçado = 0":**
   - Criação da flag `Flag_houve_orcamento` para distinguir ausência de planejamento de valores válidos.
 - **Cálculo de métricas percentuais:**
   - Indicadores como `%_Atingimento` e `Percentual_desvio` retornam `NULL` quando não há orçamento, delegando a decisão visual ao Power BI.
@@ -169,13 +169,13 @@ O projeto evoluiu de um pipeline de carga e saneamento para um **modelo dimensio
 
 ### Tratamento de qualidade e estabilidade:  
 - Uso consistente de `NULLIF` para evitar divisões por zero e leituras enganosas.  
-- Decisão consciente de **não forçar flags sem ocorrência real** (ex.: não orçado ou valor atípico), mantendo a estrutura preparada, mas sem “inventar problema”.  
+- Decisão consciente de **não forçar flags sem ocorrência real** (ex.: não orçado ou valor atípico), mantendo a estrutura preparada, mas sem "inventar problema".  
 - Implementação de uma **flag de valor atípico** baseada em comparação simples com a média histórica, apenas como apoio exploratório, não como regra de negócio crítica.  
 
 ### Boas práticas adotadas:  
 - Padronização de aliases e nomes de colunas para facilitar leitura e consumo no Power BI.  
-- Identação e organização do código focadas em clareza, não em “SQL rebuscado”.  
-- Lógica escrita de forma defensiva, priorizando números corretos em vez de métricas “bonitas”.  
+- Identação e organização do código focadas em clareza, não em "SQL rebuscado".  
+- Lógica escrita de forma defensiva, priorizando números corretos em vez de métricas "bonitas".  
 
 ### Status ao final do dia:  
 - `vw_gold_orcamento` **finalizada, revisada e pronta para uso**.  
@@ -228,3 +228,90 @@ O projeto evoluiu de um pipeline de carga e saneamento para um **modelo dimensio
 - [ ] Implementar as medidas DAX conforme as regras de negócio definidas.
 - [ ] Construir a interface visual e o sistema de navegação no Power BI.
 - [ ] Validar os alertas de risco (semáforo) com os dados da camada Gold.
+
+## [24/01/2026] Planejamento e Estruturação do Dashboard Operacional
+
+### Contexto Geral
+
+O foco do dia foi finalizar o desenho conceitual e visual do Dashboard Operacional, garantindo alinhamento entre arquitetura de dados, objetivo analítico, experiência do usuário (UI/UX) e governança do projeto. Ao final, foi concluído o esqueleto completo das duas abas operacionais em PowerPoint, servindo como mockup definitivo para implementação no Power BI.
+
+### O que foi feito:
+- **Validação da arquitetura de dados:** Reforçamos a separação clara de responsabilidades entre SQL (Gold) e Power BI (DAX), confirmando que a mediana histórica acumulada deve permanecer no SQL por ser um benchmark estrutural do negócio.
+- **Definição do objetivo analítico:** Estabelecemos que o Dashboard Operacional é **preventivo, não reativo**, atuando como radar de risco e instrumento de priorização de ação.
+- **Estruturação das abas operacionais:** Detalhamos as duas abas do dashboard operacional, cada uma com papel e estrutura bem definidos.
+- **Design system consolidado:** Adotamos identidade visual SaaS moderna (light mode, cards com sombras, cantos arredondados), ícones semânticos consistentes e títulos dinâmicos em DAX.
+
+### Decisões técnicas:
+
+#### Arquitetura: SQL vs DAX
+- **SQL (Camada Gold):** Responsável por cálculos pesados, métricas históricas, agregações complexas e tudo que não depende do contexto de filtro do usuário.
+- **Power BI (DAX):** Responsável por cálculos contextuais, projeções dinâmicas e métricas dependentes de período, filtros e interação.
+- **Mediana histórica acumulada:** Confirmado que deve permanecer na Gold por ser um benchmark estrutural que não depende de interação do usuário.
+- **Projeções e status de risco:** Calculados em DAX por dependerem diretamente do contexto temporal e filtros aplicados pelo usuário.
+
+#### Aba 1 — Operacional (Leitura Rápida / Escaneável)
+
+**Objetivo:** Permitir entendimento em poucos segundos sobre controle orçamentário, ritmo de consumo e principais riscos.
+
+**KPIs (4 cards):**
+- Total Orçado do Mês
+- Total Realizado até a Data Atual
+- % do Orçamento Consumido
+- % do Mês Decorrido
+
+**Visual Principal:** Gráfico de linhas com três curvas (Orçamento ideal acumulado, Realizado acumulado, Mediana histórica acumulada) para identificar desvios de ritmo, antecipação de estouros ou consumo abaixo do padrão.
+
+**Visuais Apoiadores:**
+1. **Matriz de Risco (Centro de Custo):** % do orçamento consumido, status de risco e semáforo (🔴 Realizado > Orçado | 🟠 ≥ 80% | 🟢 < 80%). Decisão consciente de não detalhar por categoria para manter leitura rápida.
+2. **Top 5 Centros de Custo com Maior Risco:** Barras horizontais ordenadas por maior consumo ou projeção de estouro.
+
+**Sistema de Projeção:** Status simples ("Tende a Estourar", "Dentro do Esperado", "Abaixo do Ritmo") como coluna adicional na matriz e base para o Top 5.
+
+#### Aba 2 — Operacional (Detalhamento Controlado)
+
+**Objetivo:** Investigação objetiva sem transformar o dashboard em ERP.
+
+**KPIs (5 cards):**
+- Lançamentos totais do período
+- Total realizado do período
+- Desvio do orçamento (R$)
+- Total a pagar (pendentes)
+- Previsão de resultado final do mês
+
+**Visual Principal:** Tabela de lançamentos (Centro de custo, Categoria, Fornecedor, Data, Valor, Status do pagamento) para validação e conferência.
+
+**Bloco Lateral:** Filtros adicionais, rankings pontuais e métricas auxiliares para remover excesso de colunas da tabela principal.
+
+#### Design System e UI/UX
+
+**Identidade Visual:**
+- Estilo SaaS moderno, light mode como padrão
+- Fundo: #F3F4F8 | Cards: #FFFFFF
+- Cantos arredondados e sombras suaves
+
+**Sidebar:** Não retrátil (decisão consciente para equilibrar elegância, simplicidade e viabilidade técnica). Uso de tooltips para reforço semântico.
+
+**Home:** Capa/menu de navegação, não um dashboard analítico. Função de orientar e permitir escolha clara entre dashboards.
+
+**Iconografia:** Ícones semânticos, neutros, mesma família visual (Realizado: Check | Desvio: Setas divergentes | Pendentes: Relógio | Previsão: Tendência).
+
+**Títulos Dinâmicos:** Implementados em DAX para contexto dinâmico e melhor storytelling.
+
+### Governança e Boas Práticas:
+- **Refatoração pós-entrega:** Planejada etapa futura de limpeza, simplificação e organização do SQL, mantendo legibilidade e facilidade de manutenção.
+- **Títulos dinâmicos em DAX:** Permitem contexto dinâmico, clareza e melhor narrativa analítica.
+
+### Status ao final do dia:
+- Estrutura conceitual do dashboard operacional fechada
+- Duas abas operacionais mockadas em PowerPoint
+- Arquitetura, UI e objetivo analítico totalmente alinhados
+- Pronto para iniciar a implementação no Power BI
+
+### Próximos passos:
+- [ ] Implementar o modelo semântico no Power BI
+- [ ] Criar as medidas DAX necessárias
+- [ ] Construir as páginas Operacionais no Power BI
+- [ ] Validar métricas e alertas com dados reais
+- [ ] Implementar sistema de navegação e Home
+
+---
