@@ -1,6 +1,14 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------- CRIAÇÃO DE TABELAS --------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS dim_camp_marketing
+DROP TABLE IF EXISTS dim_centro_custo
+DROP TABLE IF EXISTS dim_categoria
+DROP TABLE IF EXISTS dim_fornecedores
+DROP TABLE IF EXISTS dim_calendario
+DROP TABLE IF EXISTS fact_lancamentos
+DROP TABLE IF EXISTS fact_orcamento
+
 GO
 
 CREATE TABLE dim_camp_marketing(
