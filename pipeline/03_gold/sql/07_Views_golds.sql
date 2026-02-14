@@ -437,4 +437,61 @@ SELECT DISTINCT
                                    id_categoria
               ) AS 'valor_mediano_dia'
 FROM FINAL
+UNION ALL
+
+SELECT DISTINCT
+       dia,
+       id_centro_custo,
+       -999 AS 'id_categoria',  -- Valor especial para indicar "todas as categorias"
+       PERCENTILE_CONT(0.5)
+              WITHIN GROUP (ORDER BY perc_gasto_mes) OVER(
+                            PARTITION BY 
+                                   dia,
+                                   id_centro_custo
+              ) AS 'peso_do_dia',
+       PERCENTILE_CONT(0.5)
+              WITHIN GROUP (ORDER BY gasto_MTD) OVER(
+                            PARTITION BY 
+                                   dia,
+                                   id_centro_custo
+              ) AS 'valor_mediano_dia'
+FROM FINAL
+
+UNION ALL
+
+-- PESO AGREGADO POR CATEGORIA (SEM CENTRO DE CUSTO)
+SELECT DISTINCT
+       dia,
+       -999 AS 'id_centro_custo',  -- VALOR ESPECIAL PARA INDICAR "TODOS OS CENTROS"
+       id_categoria,
+       PERCENTILE_CONT(0.5)
+              WITHIN GROUP (ORDER BY perc_gasto_mes) OVER(
+                            PARTITION BY 
+                                   dia,
+                                   id_categoria
+              ) AS 'peso_do_dia',
+       PERCENTILE_CONT(0.5)
+              WITHIN GROUP (ORDER BY gasto_MTD) OVER(
+                            PARTITION BY 
+                                   dia,
+                                   id_categoria
+              ) AS 'valor_mediano_dia'
+FROM FINAL
+
+UNION ALL
+
+-- PESO GERAL (SEM FILTRO NENHUM)
+SELECT DISTINCT
+       dia,
+       -999 AS 'id_centro_custo',
+       -999 AS 'id_categoria',
+       PERCENTILE_CONT(0.5)
+              WITHIN GROUP (ORDER BY perc_gasto_mes) OVER(
+                            PARTITION BY dia
+              ) AS 'peso_do_dia',
+       PERCENTILE_CONT(0.5)
+              WITHIN GROUP (ORDER BY gasto_MTD) OVER(
+                            PARTITION BY dia
+              ) AS 'valor_mediano_dia'
+FROM FINAL
 
