@@ -315,3 +315,202 @@ O foco do dia foi finalizar o desenho conceitual e visual do Dashboard Operacion
 - [ ] Implementar sistema de navegação e Home
 
 ---
+
+# [26/01/2026] Implementação do Dashboard Operacional e Resolução de Desafios DAX
+
+## O que foi feito
+
+- **Criação da view `vw_gold_lancamentos_diario`**  
+  Desenvolvimento de uma estrutura SQL que preenche todos os dias do mês (inclusive dias sem lançamentos) com acumulados MTD por Centro de Custo e Categoria.
+
+- **Implementação das medidas DAX principais**  
+  Construção das métricas:
+  - Orçado Ideal MTD  
+  - Realizado MTD  
+  - Projeção Fechamento MTD com lógica de benchmark histórico
+
+- **Resolução de problemas de plotagem**  
+  Debug e correção de múltiplos problemas que impediam a visualização correta das curvas no gráfico de linhas.
+
+- **Finalização da primeira aba operacional**  
+  Dashboard funcional com KPIs, gráfico de tendências e projeção híbrida.
+
+---
+
+## Decisões Técnicas
+
+### Arquitetura SQL: View com Grid Completo
+
+#### Problema identificado
+
+A view `vw_gold_lancamentos` original tinha granularidade por lançamento (fornecedor, campanha), causando duplicações ao plotar no Power BI.
+
+#### Solução implementada
+
+- Criação de uma view agregada com `CROSS JOIN` entre:
+  - `dim_calendario`
+  - Todas as combinações existentes de Centro de Custo + Categoria
+- Preenchimento de dias sem movimento com:
+  ```sql
+  valor_dia = 0
+  ```
+- Uso de Window Function para acumulado:
+  ```sql
+  SUM() OVER (
+      PARTITION BY ano, mes, id_centro_custo, id_categoria
+      ORDER BY data
+  )
+  ```
+  Gerando `gasto_MTD_CC_CAT` no SQL, eliminando complexidade no DAX.
+
+#### Tamanho controlado
+
+~50–100k linhas para 2 anos de dados (aceitável para performance).
+
+---
+
+### Projeção de Fechamento: Abordagem Híbrida
+
+#### Método escolhido
+
+Combinação de:
+- Projeção Linear (30%)
+- Projeção baseada em Benchmark Histórico (70%)
+
+#### Justificativa técnica
+
+- **Projeção Linear**  
+  `(Realizado / DiaAtual × DiasNoMes)`  
+  Assume ritmo constante, mas ignora sazonalidade.
+
+- **Projeção Histórica**  
+  `(Realizado / PesoAtual × PesoFinal)`  
+  Respeita padrões históricos, mas pode errar em meses atípicos.
+
+A média ponderada 30/70 equilibra os dois comportamentos.
+
+#### Fórmula implementada
+
+```DAX
+ProjeçãoFinal =
+    (ProjeçãoLinear * 0.3) + (ProjeçãoHistórica * 0.7)
+
+ProjeçãoNoDia =
+    RealizadoAteHoje +
+    ((ProjeçãoFinal - RealizadoAteHoje) *
+     DIVIDE(PesoGrafico - PesoAtual, PesoFinal - PesoAtual))
+```
+
+---
+
+## Resolução de Problemas de Plotagem
+
+### Problema 1: Orçado Ideal plotava apenas 1 ponto (dia 30)
+
+#### Causa
+
+Relacionamento `vw_gold_orcamento[data_orcamento]` (sempre último dia do mês) com `dim_calendario[data]` filtrava apenas o dia 30.
+
+#### Solução
+
+- Criação da coluna `ano_mes` em ambas as tabelas
+- Relacionamento muitos-para-muitos
+- Uso de:
+  ```DAX
+  REMOVEFILTERS(dim_calendario[data])
+  ```
+  Para ignorar o filtro de dia específico.
+
+---
+
+### Problema 2: Realizado MTD plotava “montanha russa” (não acumulava)
+
+#### Causas
+
+1. View original tinha múltiplas linhas por dia (granularidade fina demais).
+2. Coluna `gasto_MTD` particionada por fornecedor/campanha, causando múltiplos acumulados por dia.
+3. Relacionamentos inativos entre `vw_gold_lancamentos_diario` e dimensões de Centro de Custo/Categoria não propagavam filtros.
+
+#### Solução
+
+- Criação da view `vw_gold_lancamentos_diario` com:
+  - Agregação diária
+  - Acumulado pré-calculado por CC/Categoria
+- Ativação dos relacionamentos no modelo semântico.
+
+---
+
+### Problema 3: Projeção plotava apenas 1 ponto (dia 20)
+
+#### Causa
+
+Variáveis `RealizadoAteHoje` e `PesoAtual` retornavam BLANK no contexto do gráfico devido à propagação de filtros.
+
+#### Solução
+
+Uso de:
+```DAX
+REMOVEFILTERS(dim_calendario)
+REMOVEFILTERS()
+```
+Para forçar cálculo fora do contexto de linha do visual, garantindo valores estáveis para todos os dias.
+
+---
+
+## Boas práticas adotadas
+
+- **Separação de responsabilidades**
+  - SQL calcula acumulados estruturais (independentes de filtro)
+  - DAX calcula métricas contextuais (dependentes de filtro)
+
+- **Proteção contra BLANK**
+  - Uso sistemático de `NULLIF`
+  - `NOT ISBLANK()`
+  - Validações antes de divisões
+
+- **Debug incremental**
+  - Criação de medidas intermediárias para validar cada variável isoladamente antes de montar a lógica completa.
+
+- **Simplicidade sobre complexidade**
+  - Escolha consciente de interpolação linear simples para a projeção ao invés de métodos mais sofisticados que aumentariam a complexidade sem ganho prático.
+
+---
+
+## Aprendizados técnicos
+
+### Contexto de filtro em DAX
+
+Compreensão profunda de:
+- Como relacionamentos e filtros visuais propagam para medidas
+- Quando usar `REMOVEFILTERS`, `ALL` ou `CALCULATE` para controlar esse comportamento
+
+### Granularidade importa
+
+- Views SQL precisam ter a granularidade correta para o consumo no Power BI.
+- Granularidade muito fina causa duplicações.
+- Granularidade muito grossa impede drill-down.
+
+### Performance vs Flexibilidade
+
+- Pré-calcular no SQL: mais rápido, menos flexível
+- Calcular no DAX: mais lento, mais flexível
+- Escolha depende do caso de uso.
+
+---
+
+## Status ao final do dia
+
+- Dashboard Operacional (Aba 1 - Monitoramento) 100% funcional.
+- Três curvas plotando corretamente: Orçado Ideal, Realizado e Projeção.
+- KPIs principais calculados e exibindo valores corretos.
+- Projeção híbrida implementada com lógica defensiva contra valores atípicos.
+
+---
+
+## Próximos passos
+
+- Implementar Aba 2 (Detalhamento) com tabela de lançamentos e filtros auxiliares
+- Adicionar matriz de risco por Centro de Custo com semáforo
+- Implementar sistema de navegação entre abas
+- Refinar identidade visual e UI/UX conforme mockup
+- Validar performance com volume real de dados
