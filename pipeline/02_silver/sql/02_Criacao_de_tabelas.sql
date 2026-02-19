@@ -75,6 +75,23 @@ CREATE TABLE dim_calendario(
 
 GO
 
+CREATE TABLE dim_mes (
+    ano_mes INT,         
+    ano INT NOT NULL,
+    mes INT NOT NULL,       
+    primeiro_dia DATETIME NOT NULL,
+    ultimo_dia DATETIME NOT NULL
+
+    CONSTRAINT dim_mes_ano_mes_pk PRIMARY KEY(ano_mes),
+    CONSTRAINT dim_mes_ano_ck CHECK(ano IN (2023, 2024)),
+    CONSTRAINT dim_mes_mes_ck CHECK(mes BETWEEN 1 AND 12),
+    CONSTRAINT dim_mes_primeiro_dia_ck CHECK(DAY(primeiro_dia) = 1),
+    CONSTRAINT dim_mes_ultimo_dia_ck CHECK(DAY(ultimo_dia) BETWEEN 28 AND 31)
+)
+
+
+GO
+
 CREATE TABLE fact_lancamentos(
        id_lancamento INT NOT NULL,
        data_lancamento DATETIME NOT NULL,
@@ -116,5 +133,3 @@ CREATE TABLE fact_orcamento(
 )
 
 GO
-
-

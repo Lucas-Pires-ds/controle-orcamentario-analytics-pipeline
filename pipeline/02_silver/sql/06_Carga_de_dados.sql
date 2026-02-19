@@ -134,6 +134,17 @@ END) AS INT)
 SET @DATA +=1
 END
 
+-- dim_mes
+
+INSERT INTO dim_mes (ano_mes, ano, mes, primeiro_dia, ultimo_dia)
+SELECT DISTINCT
+    YEAR(data) * 100 + MONTH(data) AS id_mes,
+    YEAR(data) AS ano,
+    MONTH(data) AS mes,
+    DATEFROMPARTS(YEAR(data), MONTH(data), 1) AS primeiro_dia,
+    EOMONTH(data) AS ultimo_dia
+FROM dim_calendario
+
 
 -- fact_lancamentos
 
