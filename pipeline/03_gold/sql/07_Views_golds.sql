@@ -613,3 +613,30 @@ GROUP BY data_lancamento, ano, mes, dia, id_centro_custo, id_categoria, status_p
 
 GO
 
+CREATE OR ALTER VIEW vw_gold_lancamentos_consolidados_dia AS
+WITH tb_lancamentos AS (
+
+       SELECT
+              *
+       FROM
+              vw_gold_lancamentos
+)
+SELECT 
+       data_lancamento,
+       id_centro_de_custo,
+       centro_de_custo,
+       id_categoria,
+       categoria,
+       id_fornecedor,
+       fornecedor,
+       SUM(valor) AS 'total_do_dia'
+FROM tb_lancamentos
+GROUP BY 
+       data_lancamento,
+       id_centro_de_custo,
+       centro_de_custo,
+       id_categoria,
+       categoria,
+       id_fornecedor,
+       fornecedor
+GO
