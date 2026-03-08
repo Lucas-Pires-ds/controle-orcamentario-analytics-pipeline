@@ -620,8 +620,9 @@ WITH tb_lancamentos AS (
               *
        FROM
               vw_gold_lancamentos
-)
-SELECT 
+),
+BASE AS (
+       SELECT 
        data_lancamento,
        id_centro_de_custo,
        centro_de_custo,
@@ -629,7 +630,8 @@ SELECT
        categoria,
        id_fornecedor,
        fornecedor,
-       SUM(valor) AS 'total_do_dia'
+       SUM(valor) AS 'total_do_dia',
+       status_pagamento
 FROM tb_lancamentos
 GROUP BY 
        data_lancamento,
@@ -638,5 +640,14 @@ GROUP BY
        id_categoria,
        categoria,
        id_fornecedor,
-       fornecedor
+       fornecedor,
+       status_pagamento)
+SELECT
+       *,
+       total_do_dia / SUM(total_do_dia) OVER(
+              PARTITION BY 
+                     YEAR(data_lancamento),
+                     MONTH(data_lancamento)
+       ) AS 'Partipação no mês'
+FROM BASE
 GO
