@@ -127,7 +127,7 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
 
 **Escolha da Medallion Architecture**
 
-O problema central do projeto é que os dados chegam sujos — espaços extras, IDs inválidos, tipos errados, status inconsistentes. Precisava de um lugar para guardar esses dados sem perder a origem, outro para tratá-los, e outro para servir o dashboard. A separação em Bronze, Silver e Gold resolve exatamente isso: qualquer inconsistência que aparecer depois pode ser rastreada até a fonte sem precisar reprocessar tudo do zero. As regras de negócio ficam centralizadas na Silver, então o Power BI consome dados já tratados em vez de reimplementar validações em DAX.
+O problema central do projeto é que os dados chegam sujos — espaços extras, IDs inválidos, tipos errados, status inconsistentes. Isso indica que era preciso um lugar para guardar esses dados sem perder a origem, outro para tratá-los, e outro para servir o dashboard. A separação em Bronze, Silver e Gold resolve exatamente isso: qualquer inconsistência que aparecer depois pode ser rastreada até a fonte sem precisar reprocessar tudo do zero. As regras de negócio ficam centralizadas na Silver, então o Power BI consome dados já tratados em vez de reimplementar validações em DAX.
 
 **Transformações no SQL, não no DAX**
 
