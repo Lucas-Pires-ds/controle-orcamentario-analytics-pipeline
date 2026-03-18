@@ -35,25 +35,36 @@ WITH BASE AS (
                      FO.id_categoria, 
                      CAT.nome_categoria, 
                      FO.status_dado
-              )
+              ),
+MEDIANAS AS (
+    SELECT DISTINCT
+        Ano,
+        ID_Centro_de_custo,
+        ID_Categoria,
+        Status_dado,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY NULLIF(Orcado, 0)) 
+            OVER (PARTITION BY Ano, ID_Centro_de_custo, ID_Categoria, Status_dado) 
+            AS 'Mediana'
+    FROM BASE
+)
 SELECT 
-       EOMONTH(DATEFROMPARTS(Ano, Mes, 1)) AS 'Data_de_orcamento',
-       (Ano * 100) + Mes AS 'Ano_mes',
-       Ano,
-       Mes,
-       ID_centro_de_custo,
-       Centro_de_custo,
-       ID_categoria,
-       Categoria,
+       EOMONTH(DATEFROMPARTS(B.Ano, B.Mes, 1)) AS 'Data_de_orcamento',
+       (B.Ano * 100) + Mes AS 'Ano_mes',
+       B.Ano,
+       B.Mes,
+       B.ID_centro_de_custo,
+       B.Centro_de_custo,
+       B.ID_categoria,
+       B.Categoria,
 
        NULLIF(Orcado, 0) AS 'Orcado_mensal',
 
        SUM(Orcado) OVER (
                      PARTITION BY 
-                            Ano, 
-                            ID_centro_de_custo, 
-                            ID_categoria, 
-                            status_dado 
+                            B.Ano, 
+                            B.ID_centro_de_custo, 
+                            B.ID_categoria, 
+                            B.status_dado 
                      ORDER BY 
                             Mes
                      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
@@ -61,73 +72,59 @@ SELECT
 
        NULLIF(SUM(Orcado) OVER (
                             PARTITION BY 
-                                   Ano, 
-                                   ID_centro_de_custo, 
-                                   Mes, 
-                                   status_dado)
+                                   B.Ano, 
+                                   B.ID_centro_de_custo, 
+                                   B.Mes, 
+                                   B.status_dado)
               , 0
        ) 
        / 
        NULLIF(
               SUM(Orcado) OVER(
                             PARTITION BY 
-                                   Ano, 
-                                   Mes, 
-                                   status_dado)
+                                   B.Ano, 
+                                   B.Mes, 
+                                   B.status_dado)
               , 0
        ) AS 'Peso_centro_custo',
 
        NULLIF(SUM(Orcado) OVER (
                             PARTITION BY 
-                                   Ano, 
-                                   ID_categoria, 
-                                   Mes, 
-                                   status_dado)
+                                   B.Ano, 
+                                   B.ID_categoria, 
+                                   B.Mes, 
+                                   B.status_dado)
               , 0
        ) 
        / 
        NULLIF(SUM(Orcado) OVER(
                             PARTITION BY 
-                                   Ano, 
-                                   Mes, 
-                                   status_dado)
+                                   B.Ano, 
+                                   B.Mes, 
+                                   B.status_dado)
               , 0
        ) AS 'Peso_categoria',
 
-       AVG(NULLIF(Orcado, 0)) OVER (
-                            PARTITION BY 
-                                   Ano, 
-                                   ID_centro_de_custo, 
-                                   ID_categoria, 
-                                   status_dado
-       ) AS 'Media_mensal',
+       M.Mediana,
 
        CASE 
-              WHEN 
-                     NULLIF(Orcado, 0) 
-                     > 2 * AVG(NULLIF(Orcado, 0)) OVER (
-                            PARTITION BY 
-                                   Ano, 
-                                   ID_centro_de_custo, 
-                                   ID_categoria, status_dado
-                            ) 
-                     OR 
-                     NULLIF(Orcado, 0) 
-                     < 0.5 * AVG(NULLIF(Orcado, 0)) OVER (
-                                   PARTITION BY 
-                                          Ano, 
-                                          ID_centro_de_custo, 
-                                          ID_categoria, 
-                                          status_dado
-                            )
-                     THEN 'Valor_atipico' ELSE 'Valor_normal' 
-       END AS 'Flag_valor_atipico_orcamento',
+        WHEN NULLIF(B.Orcado, 0) > 2 * M.Mediana
+          OR NULLIF(B.Orcado, 0) < 0.5 * M.Mediana
+        THEN 'Valor_atipico' 
+        ELSE 'Valor_normal' 
+    END AS 'Flag_valor_atipico_orcamento',
 
-       Status_dado
+       B.Status_dado
 FROM 
-       BASE
+       BASE B
+LEFT JOIN MEDIANAS M 
+    ON  M.Ano = B.Ano
+    AND M.ID_Centro_de_custo = B.ID_Centro_de_custo
+    AND M.ID_Categoria = B.ID_Categoria
+    AND M.Status_dado = B.Status_dado
+GO
 
-
+SELECT * FROM vw_gold_orcamento WHERE Flag_valor_atipico_orcamento = 'Valor_atipico'
 
 GO
 
@@ -163,6 +160,16 @@ GROUP BY
        CC.nome_cc,
        CAT.id_categoria,
        CAT.nome_categoria
+),
+MEDIANA AS (
+       SELECT DISTINCT
+              Ano,
+              ID_Centro_de_custo,
+              ID_Categoria,
+              PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY NULLIF(Realizado, 0))
+                     OVER (PARTITION BY Ano, ID_Centro_de_custo, ID_Categoria)
+                     AS 'Mediana'
+       FROM BASE
 )
 
 SELECT
@@ -170,17 +177,17 @@ SELECT
        B.Ano,
        B.Mes,
        B.Ano_mes,
-       ID_Centro_de_custo,
-       Centro_de_custo,
-       ID_Categoria,
-       Categoria,
-       Realizado,
+       B.ID_Centro_de_custo,
+       B.Centro_de_custo,
+       B.ID_Categoria,
+       B.Categoria,
+       B.Realizado,
 
        SUM(Realizado) OVER(
                      PARTITION BY
                             B.Ano,
-                            ID_Centro_de_custo,
-                            ID_Categoria
+                            B.ID_Centro_de_custo,
+                            B.ID_Categoria
                      ORDER BY 
                             B.Ano,
                             B.Mes
@@ -189,8 +196,8 @@ SELECT
 
        Realizado - NULLIF(LAG(Realizado , 1) OVER (
                      PARTITION BY
-                            ID_Centro_de_custo,
-                            ID_Categoria
+                            B.ID_Centro_de_custo,
+                            B.ID_Categoria
                      ORDER BY 
                             CAL.Ano,
                             CAL.Mes
@@ -198,8 +205,8 @@ SELECT
 
        Realizado / NULLIF(LAG(Realizado , 1) OVER (
                      PARTITION BY
-                            ID_Centro_de_custo,
-                            ID_Categoria
+                            B.ID_Centro_de_custo,
+                            B.ID_Categoria
                      ORDER BY 
                             CAL.Ano,
                             CAL.Mes
@@ -207,8 +214,8 @@ SELECT
 
        Realizado - NULLIF(LAG(Realizado , 12) OVER (
                      PARTITION BY
-                            ID_Centro_de_custo,
-                            ID_Categoria
+                            B.ID_Centro_de_custo,
+                            B.ID_Categoria
                      ORDER BY 
                             CAL.Ano,
                             CAL.Mes
@@ -216,8 +223,8 @@ SELECT
 
        Realizado / NULLIF(LAG(Realizado , 12) OVER (
                      PARTITION BY
-                            ID_Centro_de_custo,
-                            ID_Categoria
+                            B.ID_Centro_de_custo,
+                            B.ID_Categoria
                      ORDER BY 
                             CAL.Ano,
                             CAL.Mes
@@ -226,13 +233,13 @@ SELECT
        AVG(Realizado) OVER (
                      PARTITION BY
                             B.Ano,
-                            ID_Centro_de_custo,
-                            ID_Categoria
+                            B.ID_Centro_de_custo,
+                            B.ID_Categoria
        ) AS 'Média_mensal',
 
        SUM(Realizado) OVER(
                      PARTITION BY 
-                            ID_Centro_de_custo,
+                            B.ID_Centro_de_custo,
                             B.Ano,
                             B.Mes
        ) 
@@ -247,7 +254,7 @@ SELECT
 
        SUM(Realizado) OVER(
                      PARTITION BY 
-                            ID_Categoria,
+                            B.ID_Categoria,
                             B.Ano,
                             B.Mes
        ) 
@@ -259,25 +266,14 @@ SELECT
                      )
               , 0
        ) AS 'Peso_categoria',
+       M.Mediana,
 
        CASE 
-              WHEN Realizado 
-                     > 2 * AVG(NULLIF(Realizado, 0)) OVER (
-                                   PARTITION BY
-                                          B.Ano,
-                                          ID_Centro_de_custo,
-                                          ID_Categoria )
-              THEN 'Valor_acima_do_normal'
-              WHEN 
-                     Realizado 
-                     < 0.5 * AVG(NULLIF(Realizado, 0)) OVER (
-                                   PARTITION BY
-                                          B.Ano,
-                                          ID_Centro_de_custo,
-                                          ID_Categoria )
-              THEN 'Valor_abaixo_do_normal'
-              ELSE 'Valor_normal'
-       END AS 'Flag_valor_atipico_realizado',
+        WHEN NULLIF(B.Realizado, 0) > 2 * M.Mediana
+          OR NULLIF(B.Realizado, 0) < 0.5 * M.Mediana
+        THEN 'Valor_atipico' 
+        ELSE 'Valor_normal' 
+    END AS 'Flag_valor_atipico_realizado',
 
        Flag_centro_custo_coringa
 FROM
@@ -291,6 +287,10 @@ FROM
                      dim_calendario) CAL                       
                             ON B.Ano = CAL.ano 
                             AND B.Mes = CAL.mes
+       LEFT JOIN MEDIANA M 
+       ON  M.Ano = B.Ano
+       AND M.ID_Centro_de_custo = B.ID_Centro_de_custo
+       AND M.ID_Categoria = B.ID_Categoria
 
 GO
 

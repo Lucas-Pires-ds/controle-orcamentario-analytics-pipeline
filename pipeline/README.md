@@ -8,19 +8,13 @@ Cada camada possui documentação técnica detalhada em seu respectivo diretóri
 
 ---
 
-## 🎯 Conceito da Arquitetura Medallion
+## 🏗️ Arquitetura Medallion
 
-A Medallion Architecture organiza dados em camadas progressivas de qualidade e refinamento:
+O pipeline segue o padrão Bronze -> Silver -> Gold, com cada camada tendo responsabilidade exclusiva: Bronze preserva os dados exatamente como chegaram, Silver aplica todas as regras de qualidade e negócio, Gold entrega estruturas prontas para consumo analítico. A documentação de cada camada detalha as decisões tomadas em cada etapa.
+
 ```
 Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 ```
-
-### Benefícios desta abordagem:
-
-- **Separação de responsabilidades**: Cada camada tem um propósito específico
-- **Rastreabilidade**: Auditoria completa das transformações aplicadas
-- **Recuperabilidade**: Reprocessamento de camadas específicas sem afetar outras
-- **Qualidade**: Validações em cada etapa antes da próxima camada
 
 ---
 
@@ -29,10 +23,10 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 **Responsabilidade**: Receber dados brutos sem aplicar transformações
 
 **Características**:
-- Todas as colunas armazenadas como `VARCHAR` (máxima flexibilidade)
-- Nenhuma validação ou tipagem aplicada
+- Todas as colunas armazenadas como `VARCHAR`, a tipagem é responsabilidade da Silver
+- Nenhuma validação aplicada
 - Preservação integral dos dados originais
-- Ingestão via Python (Pandas) + BULK INSERT
+- Ingestão via `BULK INSERT`
 
 **Objetivo**: Garantir que a carga nunca falhe por incompatibilidade de tipos
 
@@ -52,9 +46,9 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 - Framework completo de validação de qualidade
 
 **Componentes**:
-- 4 dimensões (`dim_centro_custo`, `dim_categoria`, `dim_fornecedores`, `dim_camp_marketing`)
-- 1 dimensão temporal (`dim_calendario`)
-- 2 tabelas fato (`fact_orcamento`, `fact_lancamentos`)
+- 5 dimensões: `dim_centro_custo`, `dim_categoria`, `dim_fornecedores`, `dim_camp_marketing`, `dim_mes`
+- 1 dimensão temporal: `dim_calendario`
+- 2 tabelas fato: `fact_orcamento`, `fact_lancamentos`
 
 📖 **[Documentação técnica da Silver](02_silver/)**
 
@@ -65,15 +59,17 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 **Responsabilidade**: Preparar dados para consumo analítico no Power BI
 
 **Características**:
-- 3 views especializadas com propósitos distintos
+- 5 views especializadas com propósitos distintos
 - Métricas pré-calculadas (YTD, MoM, YoY, pesos relativos)
-- Proteção contra erros (NULLIF, COALESCE)
+- Proteção contra erros (`NULLIF`, `COALESCE`)
 - Flags de anomalias e valores atípicos
 
 **Views implementadas**:
 - `vw_gold_orcamento`: Consolidação mensal do orçamento
 - `vw_gold_realizado`: Consolidação mensal do realizado com métricas avançadas
 - `vw_gold_lancamentos`: Base detalhada para drill-down
+- `vw_gold_referencia_mtd`: Benchmark histórico de consumo diário baseado em mediana
+- `vw_gold_lancamentos_diarios`: Grid diário completo com acumulado MTD
 
 **Decisão arquitetural**: Cruzamento Orçado vs Realizado é realizado no Power BI, não na camada de dados
 
@@ -82,6 +78,7 @@ Bronze (Raw) → Silver (Trusted) → Gold (Analytics)
 ---
 
 ## 🔄 Fluxo de Dados
+
 ```mermaid
 graph LR
     A[CSVs] --> B[Bronze - stg_*]
@@ -93,12 +90,11 @@ graph LR
 
 ### Etapas do pipeline:
 
-1. **Geração de dados** (Python): CSVs sintéticos simulando sistema financeiro
-2. **Ingestão** (Bronze): BULK INSERT sem transformações
-3. **Transformação** (Views): Limpeza, tipagem, validações
-4. **Persistência** (Silver): Modelo dimensional com constraints
-5. **Agregação** (Gold): Views analíticas especializadas
-6. **Visualização** (Power BI): Dashboards e análises
+1. **Ingestão** (Bronze): `BULK INSERT` sem transformações
+2. **Transformação** (Views): Limpeza, tipagem, validações
+3. **Persistência** (Silver): Modelo dimensional com constraints
+4. **Agregação** (Gold): Views analíticas especializadas
+5. **Visualização** (Power BI): Dashboards e análises
 
 ---
 
@@ -120,36 +116,22 @@ O pipeline implementa validações em múltiplos pontos:
 ## 🛠️ Stack Utilizada
 
 - **SQL (SQL Server)**: Armazenamento, transformações, modelagem dimensional
-- **Python (Pandas)**: Geração de dados sintéticos, ingestão
 - **Power BI**: Consumo das views Gold
 
 ---
 
 ## 📌 Decisões de Arquitetura
 
-### Uso de Views ao invés de Stored Procedures
+### Separação da Gold em Views Independentes
 
-Views foram adotadas para as transformações devido a:
-
-- **Auditoria**: Código SQL visível e versionável
-- **Rastreabilidade**: Possibilidade de investigar transformações aplicadas
-- **Flexibilidade**: Mudanças não requerem reprocessamento de dados físicos
-- **Simplicidade**: Menos estado a gerenciar
-
-Essa escolha facilita o debug e permite ajustes nas regras de negócio sem recarregar dados da Bronze.
-
-### Separação da Gold em 3 Views Independentes
-
-A camada Gold foi dividida em views especializadas (Orçamento, Lançamentos, Realizado) ao invés de uma view consolidada.
+A camada Gold foi dividida em views especializadas ao invés de uma view consolidada.
 
 **Razões para essa decisão**:
 
 - Cada view tem responsabilidade única e clara
 - Evita redundância de dados pré-calculados
-- Facilita manutenção (mudanças em uma view não afetam outras)
+- Facilita manutenção — mudanças em uma view não afetam outras
 - Permite consumo flexível no Power BI
-
-**Contrapartida**: Power BI precisa fazer joins entre as views. Esse custo computacional é baixo e compensa pelos benefícios organizacionais.
 
 ---
 
