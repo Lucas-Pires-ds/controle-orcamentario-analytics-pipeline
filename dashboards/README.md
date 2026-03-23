@@ -1,20 +1,16 @@
-# 📊 Dashboard — Visualização e Analytics
+# Dashboard — Visualização e Analytics
 
-> Camada de consumo final do pipeline. Transforma as views Gold em inteligência acionável para gestão orçamentária da Sage.
+## Responsabilidade
 
----
+Camada de consumo final do pipeline. Consome diretamente as views da camada Gold sem transformações adicionais no Power Query. As agregações diárias, medianas históricas, YTD, MoM e YoY chegam prontos do SQL. O Power BI foca em relacionamentos, contexto de filtro e visualização.
 
-## Visão Geral
+O relatório está organizado em quatro páginas com contextos analíticos distintos: monitoramento preventivo intra-mês e análise executiva retrospectiva. A navegação entre páginas é feita pelo menu lateral com botões dedicados.
 
-O dashboard é o ponto de entrega do projeto — onde os dados que passaram por Bronze, Silver e Gold se tornam decisões.
-
-Construído em **Power BI**, consome diretamente as views da camada Gold sem transformações adicionais no Power Query. A lógica pesada já foi resolvida no SQL: agregações diárias, medianas históricas, YTD, MoM e YoY chegam prontos. O Power BI foca em relacionamentos, contexto de filtro e visualização.
-
-O relatório está organizado em **quatro páginas funcionais**, separadas por contexto analítico: monitoramento preventivo intra-mês e análise executiva retrospectiva.
+Publicado no **Power BI Service**.
 
 ---
 
-## Estrutura do Arquivo
+## 📂 Estrutura de Arquivos
 
 ```
 dashboards/
@@ -22,29 +18,23 @@ dashboards/
 └── controle_orcamentario.pbix
 ```
 
-Arquivo único com navegação interna por páginas. Essa decisão evita duplicação do modelo semântico, simplifica o versionamento e garante consistência de métricas entre as visões.
+Arquivo único com navegação interna por páginas — evita duplicação do modelo semântico, simplifica o versionamento e garante consistência de métricas entre as visões.
 
 ---
 
-## Páginas
+## 📊 Páginas
 
 ### 1. Operacional — Monitoramento
 
-Radar de risco do mês corrente. Permite identificar em segundos se o orçamento está sob controle e onde estão os maiores riscos — antes do fechamento.
+Monitoramento preventivo intra-mês: ritmo de consumo vs orçado ideal e semáforo de risco por centro de custo.
 
 ![Operacional — Monitoramento](../docs_e_imagens/dash_operacional_monitoramento.png)
-*Monitoramento preventivo intra-mês: ritmo de consumo vs orçado ideal (baseado em benchmark histórico) e semáforo de risco por centro de custo*
 
-**O que responde:**
-- Estamos consumindo o orçamento mais rápido ou mais devagar que o esperado?
-- Quais centros de custo representam maior risco de estouro?
-- O ritmo atual está alinhado com o comportamento histórico da empresa?
-
-**Destaques técnicos:**
+**Destaques:**
 - Gráfico de linhas com quatro séries: Orçado Ideal MTD, Realizado MTD, Mediana Histórica MTD e Projeção de Fechamento
-- Orçado Ideal calculado em DAX usando `peso_do_dia` (percentual mediano acumulado histórico), distribuindo o orçamento mensal conforme o ritmo real de gastos — não de forma linear
-- Tabela de indicadores de risco por centro de custo com semáforo: estouro confirmado, atenção e dentro do esperado
+- Orçado Ideal calculado em DAX usando `peso_do_dia` — distribuição não-linear do orçamento mensal conforme ritmo real histórico de gastos
 - Projeção de fechamento baseada na taxa de gasto diária atual
+- Tabela de indicadores de risco por centro de custo com semáforo: acima do normal, risco de estouro, estouro confirmado e estouro do orçamento do ano.
 
 **Views consumidas:** `vw_gold_lancamentos`, `vw_gold_orcamento`, `vw_gold_referencia_mtd`
 
@@ -52,21 +42,14 @@ Radar de risco do mês corrente. Permite identificar em segundos se o orçamento
 
 ### 2. Operacional — Detalhamento
 
-
+Detalhamento transacional do período com visão de pendências financeiras e ranking por categoria e fornecedor.
 
 ![Operacional — Detalhamento](../docs_e_imagens/dash_operacional_detalhamento.png)
-*Investigação de lançamentos: tabela diária com status de pagamento, pendências financeiras e ranking por categoria e fornecedor*
 
-**O que responde:**
-- Quais foram os principais lançamentos do período?
-- Quanto ainda está pendente de pagamento?
-- Quais categorias e fornecedores concentram mais gasto?
-
-**Destaques técnicos:**
+**Destaques:**
 - Tabela de lançamentos por dia com status de pagamento e % do período acumulado
 - KPIs de pendências: total pendente e % ainda pendente
-- Top 5 categorias e Top 5 fornecedores por volume — painéis laterais contextuais
-- Dados consumidos da `vw_gold_lancamentos` (granularidade diária, corretamente somável)
+- Top 5 categorias e Top 5 fornecedores por valor gasto
 
 **Views consumidas:** `vw_gold_lancamentos`, `vw_gold_orcamento`
 
@@ -74,21 +57,17 @@ Radar de risco do mês corrente. Permite identificar em segundos se o orçamento
 
 ### 3. Analytics — Performance Orçamentária
 
-
+Visão executiva sobre a aderência ao orçamento por mês e por centro de custo.
 
 ![Analytics — Performance Orçamentária](../docs_e_imagens/dash_analytics_performance.png)
-*Visão executiva retrospectiva: orçado vs realizado com linha de desvio e matriz de performance por centro de custo × mês*
 
-**O que responde:**
-- O gasto total está dentro do planejamento?
-- Quais meses apresentaram maior desvio?
-- Quais centros de custo são responsáveis pelos estouros?
+![Analytics — Performance Orçamentária](../docs_e_imagens/dash_analytics_performance_tooltip.png)
 
-**Destaques técnicos:**
+**Destaques:**
 - Gráfico combinado: barras agrupadas (Orçado vs Realizado) com linha de desvio sobreposta
-- KPIs anuais: Orçado YTD, Realizado YTD, Desvio Absoluto (R$) e Desvio Percentual (%)
+- KPIs anuais: Orçado YTD, Realizado YTD, Desvio Absoluto e Desvio Percentual
 - Matriz de desvio por centro de custo × mês com formatação condicional por intensidade
-- Métricas pré-calculadas na camada Gold via `vw_gold_realizado`
+- Tooltip por mês: orçado, realizado, desvio do mês, desvio acumulado YTD — cor indica estouro ou aderência
 
 **Views consumidas:** `vw_gold_orcamento`, `vw_gold_realizado`
 
@@ -96,40 +75,37 @@ Radar de risco do mês corrente. Permite identificar em segundos se o orçamento
 
 ### 4. Analytics — Evolução e Tendências
 
-Análise de crescimento e sazonalidade de gastos ao longo do tempo.
+Análise de crescimento e sazonalidade de gastos com comparativo entre anos.
 
 ![Analytics — Evolução e Tendências](../docs_e_imagens/dash_analytics_tendencias.png)
-*Análise de crescimento: comparativo YoY, ranking de crescimento estrutural e top 5 centros de custo com maior variação*
 
-**O que responde:**
-- O gasto atual é maior que o mesmo período do ano passado?
-- Qual a tendência de crescimento mês a mês?
-- Quais áreas tiveram maior aumento de custo?
+![Analytics — Evolução e Tendências](../docs_e_imagens/dash_analytics_tendencias_tooltip.png)
 
-**Destaques técnicos:**
-- Gráfico de linhas comparando anos (2023 vs 2024) para leitura de sazonalidade
-- KPIs de variação: YoY (%), MoM (%), Acumulado vs LY (% e R$)
-- Scatter plot de crescimento estrutural: YoY % × YoY Absoluto por centro de custo
-- Top 5 centros de custo com maior crescimento YoY
-- Todas as métricas temporais (MoM, YoY) chegam prontas da Gold via `LAG()` — calculadas uma vez no SQL, sem risco de distorção por meses sem lançamentos
+**Destaques:**
+- Gráfico de área comparando 2023 vs 2024 para leitura de sazonalidade
+- KPIs de variação: YoY (%), MoM (%), Acumulado vs LY
+- Top 5 centros de custo com maior crescimento YoY e Top 5 com maior crescimento MoM
+- Gráfico de dispersão de crescimento estrutural: YoY % × YoY Absoluto por centro de custo
+- Tooltip por mês: realizado, orçado, YoY, MoM e desvio vs orçado — cor indica estouro ou aderência
+- Métricas temporais chegam prontas da Gold via `LAG()` — calculadas no SQL, sem risco de distorção por meses sem lançamentos
 
 **Views consumidas:** `vw_gold_realizado`
 
 ---
 
-## Decisões de Arquitetura
+## 🎯 Decisões Técnicas
 
-### Push-down computation
+### Processamento na camada de dados
 
-Cálculos estruturais são resolvidos no SQL Server (camada Gold) e chegam prontos para consumo. O Power BI fica responsável por relacionamentos, contexto de filtro e visualização — sem recalcular o que já foi feito na origem.
+Cálculos estruturais são resolvidos no SQL Server (camada Gold) e chegam prontos para consumo. O Power BI foca em relacionamentos, contexto de filtro e visualização.
 
 ### Separação de views somáveis vs. de referência
 
-A `vw_gold_referencia_mtd` não é agregada via `SUM()`. É consultada pontualmente via `CALCULATE(..., dia = DiaAtual)`, evitando a distorção de benchmarks ao filtrar múltiplos centros de custo simultaneamente — problema identificado e corrigido na refatoração v1.0 → v2.0.
+A `vw_gold_referencia_mtd` não é agregada via `SUM()`. É consultada pontualmente via `CALCULATE(..., dia = DiaAtual)`, evitando distorção de benchmarks ao filtrar múltiplos centros de custo simultaneamente.
 
 ### Orçado Ideal não-linear
 
-Em vez de distribuir o orçamento uniformemente ao longo do mês, o cálculo usa o `peso_do_dia`: percentual mediano acumulado histórico por dia. O resultado reflete o ritmo real de consumo da empresa, tornando o benchmark estatisticamente mais robusto.
+O orçamento mensal é distribuído conforme o `peso_do_dia` — percentual mediano acumulado histórico por dia — em vez de distribuição linear. Reflete o ritmo real de consumo de cada área da empresa.
 
 ### Medida DAX central
 
@@ -153,13 +129,14 @@ RETURN
 
 ---
 
-## Modelo de Dados
+## 📋 Modelo de Dados
 
 | View | Tipo | Granularidade | Somável? | Uso principal |
 |---|---|---|---|---|
 | `vw_gold_orcamento` | Fato | Mensal | ✅ Sim | Planejamento financeiro |
 | `vw_gold_realizado` | Fato | Mensal | ✅ Sim | Análise executiva retrospectiva |
 | `vw_gold_lancamentos` | Fato | Diária | ✅ Sim | KPIs operacionais, tabela de lançamentos |
+| `vw_gold_lancamentos_diarios` | Fato | Diária | ✅ Sim | Grid diário completo com acumulado MTD |
 | `vw_gold_referencia_mtd` | Referência | Dia do mês | ❌ Não | Linhas de benchmark e orçado ideal |
 
-Relacionamentos via `dim_calendario` (data), `id_centro_custo` e `id_categoria`. A `vw_gold_referencia_mtd` não possui relacionamento direto com a dimensão de datas — é filtrada pelo campo `dia` de forma independente.
+Relacionamentos via `dim_calendario` (data), `id_centro_custo` e `id_categoria`. 
