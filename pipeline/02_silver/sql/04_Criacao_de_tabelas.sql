@@ -1,13 +1,14 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------- CRIAÇÃO DE TABELAS --------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS dim_camp_marketing
-DROP TABLE IF EXISTS dim_centro_custo
-DROP TABLE IF EXISTS dim_categoria
-DROP TABLE IF EXISTS dim_fornecedores
-DROP TABLE IF EXISTS dim_calendario
 DROP TABLE IF EXISTS fact_lancamentos
 DROP TABLE IF EXISTS fact_orcamento
+DROP TABLE IF EXISTS dim_camp_marketing
+DROP TABLE IF EXISTS dim_categoria
+DROP TABLE IF EXISTS dim_centro_de_custo
+DROP TABLE IF EXISTS dim_fornecedores
+DROP TABLE IF EXISTS dim_calendario
+DROP TABLE IF EXISTS dim_mes
 
 GO
 
@@ -22,7 +23,7 @@ GO
 CREATE TABLE dim_centro_de_custo(
        id_centro_de_custo INT,
        nome_centro_de_custo VARCHAR(200),
-       CONSTRAINT dim_centro_custo_id_cc_pk PRIMARY KEY(id_centro_de_custo)
+       CONSTRAINT dim_centro_de_custo_id_cc_pk PRIMARY KEY(id_centro_de_custo)
 )
 GO
 
@@ -31,7 +32,7 @@ CREATE TABLE dim_categoria(
        id_centro_de_custo INT,
        nome_categoria VARCHAR(200),
        CONSTRAINT dim_categoria_id_categoria_pk PRIMARY KEY(id_categoria),
-       CONSTRAINT dim_categoria_id_cc_fk FOREIGN KEY (id_centro_de_custo) REFERENCES dim_centro_custo(id_centro_de_custo)
+       CONSTRAINT dim_categoria_id_cc_fk FOREIGN KEY (id_centro_de_custo) REFERENCES dim_centro_de_custo(id_centro_de_custo)
 )      
 GO
 
@@ -63,7 +64,7 @@ CREATE TABLE dim_calendario(
     ano_bimestre INT NOT NULL,
 
     CONSTRAINT dim_calendario_data_pk PRIMARY KEY (data),
-    CONSTRAINT dim_calendario_data_ck CHECK (data BETWEEN '20230101' AND '20241231'),
+    CONSTRAINT dim_calendario_data_ck CHECK (data BETWEEN '20230101' AND GETDATE()),
     CONSTRAINT dim_calendario_dia_util_ck CHECK (dia_util in ('sim', 'nao')),
     CONSTRAINT dim_calendario_ano_ck CHECK (ano in (2023, 2024)),
     CONSTRAINT dim_calendario_mes_ck CHECK (mes BETWEEN 1 AND 12),
@@ -109,7 +110,7 @@ CREATE TABLE fact_lancamentos(
        CONSTRAINT fact_lancamentos_id_centro_de_custo_fk FOREIGN KEY(id_centro_de_custo) REFERENCES dim_centro_de_custo(id_centro_de_custo),
        CONSTRAINT fact_lancamentos_id_categoria_fk FOREIGN KEY(id_categoria) REFERENCES dim_categoria(id_categoria),
        CONSTRAINT fact_lancamentos_id_fornecedor_fk FOREIGN KEY(id_fornecedor) REFERENCES dim_fornecedores(id_fornecedor),
-       CONSTRAINT fact_lancamentos_id_campanha_fk FOREIGN KEY(id_campanha) REFERENCES dim_camp_marketing(id_camp),
+       CONSTRAINT fact_lancamentos_id_campanha_fk FOREIGN KEY(id_campanha) REFERENCES dim_camp_marketing(id_campanha),
        CONSTRAINT fact_lancamentos_valor_ck CHECK(valor > 0),
        CONSTRAINT fact_lancamentos_status_pagamento_ck CHECK(status_pagamento in ('Pago', 'Aberto'))
 )
