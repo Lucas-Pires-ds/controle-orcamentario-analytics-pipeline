@@ -1,19 +1,19 @@
 import pandas as pd
 
-# 1. Dimensão: Centro de Custo
-# Aplicando sujeiras como espaços extras e variações de Case
-data_cc = {
+# Dimensão: Centro de Custo
+
+centro_de_custo_dict = {
     'id_centro_custo': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     'nome_centro_custo': [
         "Administrativo", " Marketing", "Jurídico", "TI", "RH ", 
         "FINANCEIRO", "Comercial/Vendas", "Operações", "  Facilities", "Projetos Especiais"
     ]
 }
-df_cc = pd.DataFrame(data_cc)
+df_cc = pd.DataFrame(centro_de_custo_dict)
 
-# 2. Dimensão: Categorias (Contas)
-# Relacionada ao id_centro_custo
-categorias_raw = [
+# Dimensão: Categorias (Contas)
+
+categorias_list = [
     (1, "Manutenção predial"), (1, "Aluguel/Condomínio"), (1, "Energia/Água/Utilidades"), (1, "Materiais de escritório"), (1, "Serviços administrativos terceirizados"),
     (2, "Endomarketing"), (2, "Campanhas sazonais"), (2, "Propaganda e publicidade"), (2, "Produção de conteúdo"), (2, "Ferramentas digitais"),
     (3, "Despesas processuais"), (3, "Honorários advocatícios"), (3, "Licenças e registros legais"), (3, "Consultoria jurídica"), (3, "Custas cartoriais"),
@@ -26,12 +26,11 @@ categorias_raw = [
     (10, "Projetos estratégicos"), (10, "Consultorias pontuais"), (10, "Implementação de sistemas"), (10, "Reestruturações internas"), (10, "Despesas extraordinárias")
 ]
 
-df_cat = pd.DataFrame(categorias_raw, columns=['id_centro_custo', 'nome_categoria'])
+df_cat = pd.DataFrame(categorias_list, columns=['id_centro_custo', 'nome_categoria'])
 df_cat.insert(0, 'id_categoria', range(101, 101 + len(df_cat)))
-# Sujeira proposital em algumas categorias
-df_cat.loc[101, 'nome_categoria'] = "ALUGUEL/CONDOMÍNIO" # Upper case
+df_cat.loc[101, 'nome_categoria'] = "ALUGUEL/CONDOMÍNIO"
 
-# 3. Dimensão: Fornecedores
+# Dimensão: Fornecedores
 fornecedores_list = [
     "Alpha Serviços", "Beta TI", "Gamma Consultoria", "Delta Publicidade", "Épsilon Advocacia",
     "Zeta RH", "Eta Transportes", "Theta Logística", "Iota Energia", "Kappa Materiais",
@@ -39,11 +38,11 @@ fornecedores_list = [
     "Pi Tecnologia", "Rho Auditoria", "Sigma Alimentos", "Tau Design", "Upsilon Serviços Gerais"
 ]
 df_forn = pd.DataFrame({
-    'id_fornecedor': range(1, 21),
+    'id_fornecedor': range(1, len(fornecedores_list) + 1),
     'nome_fornecedor': fornecedores_list
 })
 
-# 4. Dimensão: Campanhas de Marketing
+# Dimensão: Campanhas de Marketing
 df_camp = pd.DataFrame({
     'id_campanha': [1, 2, 3, 4],
     'nome_campanha': ["Dia das Mães", "Dia dos Pais", "Black Friday", "Natal / Fim de Ano"],

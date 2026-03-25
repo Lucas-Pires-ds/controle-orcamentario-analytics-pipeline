@@ -12,33 +12,33 @@ DROP TABLE IF EXISTS fact_orcamento
 GO
 
 CREATE TABLE dim_camp_marketing(
-       id_camp INT,
+       id_campanha INT,
        nome_campanha VARCHAR(200),
        mes_referente INT,
-       CONSTRAINT dim_camp_marketing_id_camp_pk PRIMARY KEY(id_camp)
+       CONSTRAINT dim_camp_marketing_id_camp_pk PRIMARY KEY(id_campanha)
 )
 GO
 
-CREATE TABLE dim_centro_custo(
-       id_cc INT,
-       nome_cc VARCHAR(200),
-       CONSTRAINT dim_centro_custo_id_cc_pk PRIMARY KEY(id_cc)
+CREATE TABLE dim_centro_de_custo(
+       id_centro_de_custo INT,
+       nome_centro_de_custo VARCHAR(200),
+       CONSTRAINT dim_centro_custo_id_cc_pk PRIMARY KEY(id_centro_de_custo)
 )
 GO
 
 CREATE TABLE dim_categoria(
        id_categoria INT,
-       id_cc INT,
-       nome_categoria VARCHAR(200)
-       CONSTRAINT dim_categoria_id_categoria_pk PRIMARY KEY(id_categoria)
-       CONSTRAINT dim_categoria_id_cc_fk FOREIGN KEY (id_cc) REFERENCES dim_centro_custo(id_cc)
+       id_centro_de_custo INT,
+       nome_categoria VARCHAR(200),
+       CONSTRAINT dim_categoria_id_categoria_pk PRIMARY KEY(id_categoria),
+       CONSTRAINT dim_categoria_id_cc_fk FOREIGN KEY (id_centro_de_custo) REFERENCES dim_centro_custo(id_centro_de_custo)
 )      
 GO
 
 CREATE TABLE dim_fornecedores(
-       id_forn INT,
-       nome_forn VARCHAR(200),
-       CONSTRAINT dim_fornecedores_id_forn_pk PRIMARY KEY(id_forn)
+       id_fornecedor INT,
+       nome_fornecedor VARCHAR(200),
+       CONSTRAINT dim_fornecedores_id_forn_pk PRIMARY KEY(id_fornecedor)
 )
 GO
 
@@ -80,7 +80,9 @@ CREATE TABLE dim_mes (
     ano INT NOT NULL,
     mes INT NOT NULL,       
     primeiro_dia DATETIME NOT NULL,
-    ultimo_dia DATETIME NOT NULL
+    ultimo_dia DATETIME NOT NULL,
+    nome_mes VARCHAR(50) NOT NULL,
+    nome_mes_abrev VARCHAR(50),
 
     CONSTRAINT dim_mes_ano_mes_pk PRIMARY KEY(ano_mes),
     CONSTRAINT dim_mes_ano_ck CHECK(ano IN (2023, 2024)),
@@ -95,7 +97,7 @@ GO
 CREATE TABLE fact_lancamentos(
        id_lancamento INT NOT NULL,
        data_lancamento DATETIME NOT NULL,
-       id_centro_custo INT NOT NULL,
+       id_centro_de_custo INT NOT NULL,
        id_categoria INT NOT NULL,
        id_fornecedor INT NOT NULL,
        id_campanha INT,
@@ -103,10 +105,10 @@ CREATE TABLE fact_lancamentos(
        valor_original DECIMAL(16,2) NOT NULL,
        status_pagamento VARCHAR(20) NOT NULL,
        CONSTRAINT fact_lancamentos_id_lancamento_pk PRIMARY KEY(id_lancamento),
-       CONSTRAINT fact_lancamentos_data_lancamento_ck CHECK(data_lancamento <= GETDATE() AND data_lancamento > '1991-01-01'),
-       CONSTRAINT fact_lancamentos_id_centro_custo_fk FOREIGN KEY(id_centro_custo) REFERENCES dim_centro_custo(id_cc),
+       CONSTRAINT fact_lancamentos_data_lancamento_ck CHECK(data_lancamento BETWEEN '20230101' AND GETDATE()),
+       CONSTRAINT fact_lancamentos_id_centro_de_custo_fk FOREIGN KEY(id_centro_de_custo) REFERENCES dim_centro_de_custo(id_centro_de_custo),
        CONSTRAINT fact_lancamentos_id_categoria_fk FOREIGN KEY(id_categoria) REFERENCES dim_categoria(id_categoria),
-       CONSTRAINT fact_lancamentos_id_fornecedor_fk FOREIGN KEY(id_fornecedor) REFERENCES dim_fornecedores(id_forn),
+       CONSTRAINT fact_lancamentos_id_fornecedor_fk FOREIGN KEY(id_fornecedor) REFERENCES dim_fornecedores(id_fornecedor),
        CONSTRAINT fact_lancamentos_id_campanha_fk FOREIGN KEY(id_campanha) REFERENCES dim_camp_marketing(id_camp),
        CONSTRAINT fact_lancamentos_valor_ck CHECK(valor > 0),
        CONSTRAINT fact_lancamentos_status_pagamento_ck CHECK(status_pagamento in ('Pago', 'Aberto'))
@@ -118,15 +120,15 @@ CREATE TABLE fact_orcamento(
        data_orcamento DATETIME NOT NULL,
        ano INT NOT NULL,
        mes INT NOT NULL,
-       id_centro_custo INT NOT NULL,
+       id_centro_de_custo INT NOT NULL,
        id_categoria INT NOT NULL,
        valor DECIMAL(18,2) NOT NULL,
        status_dado VARCHAR(50) NOT NULL
        CONSTRAINT fact_orcamento_id_orcamento_pk PRIMARY KEY(id_orcamento),
-       CONSTRAINT fact_orcamento_data_ck CHECK(data_orcamento BETWEEN '20230101' AND '20241231'),
-       CONSTRAINT fact_orcamento_ano_ck CHECK(ano <= YEAR(GETDATE()) AND ano >= 2000),
+       CONSTRAINT fact_orcamento_data_ck CHECK(data_orcamento BETWEEN '20230101' AND GETDATE()),
+       CONSTRAINT fact_orcamento_ano_ck CHECK(ano BETWEEN 2023 AND YEAR(GETDATE())),
        CONSTRAINT fact_orcamento_mes_ck CHECK(mes BETWEEN 1 AND 12),
-       CONSTRAINT fact_orcamento_id_centro_custo_fk FOREIGN KEY(id_centro_custo) REFERENCES dim_centro_custo(id_cc),
+       CONSTRAINT fact_orcamento_id_centro_de_custo_fk FOREIGN KEY(id_centro_de_custo) REFERENCES dim_centro_de_custo(id_centro_de_custo),
        CONSTRAINT fact_orcamento_id_categoria_fk FOREIGN KEY(id_categoria) REFERENCES dim_categoria(id_categoria),
        CONSTRAINT fact_orcamento_valor_ck CHECK(valor > 0),
        CONSTRAINT fact_orcamento_status_dado_ck CHECK(status_dado in ('Dado suspeito', 'Dado confiavel'))
