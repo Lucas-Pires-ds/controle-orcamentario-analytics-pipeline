@@ -1,20 +1,21 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------- CARGA DE DADOS --------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------------------------------
-
+TRUNCATE TABLE fact_lancamentos
+TRUNCATE TABLE fact_orcamento
 TRUNCATE TABLE dim_camp_marketing
+TRUNCATE TABLE dim_categoria
 TRUNCATE TABLE dim_centro_custo
 TRUNCATE TABLE dim_fornecedores
 TRUNCATE TABLE dim_calendario
-TRUNCATE TABLE dim_categoria
-TRUNCATE TABLE fact_lancamentos
-TRUNCATE TABLE fact_orcamento
+
+
 
 
 -- dim_camp_marketing
 
 INSERT INTO dim_camp_marketing(
-    id_camp, 
+    id_campanha, 
     nome_campanha, 
     mes_referente)
 SELECT 
@@ -26,23 +27,23 @@ FROM
 
 -- dim_centro_custo
 
-INSERT INTO dim_centro_custo(
-    id_cc, 
-    nome_cc)
+INSERT INTO dim_centro_de_custo(
+    id_centro_de_custo, 
+    nome_centro_de_custo)
 SELECT 
     id_cc, 
     nome_cc 
 FROM 
     vw_centro_custo
 
-INSERT INTO dim_centro_custo(id_cc, nome_cc) VALUES
+INSERT INTO dim_centro_de_custo(id_centro_de_custo, nome_centro_de_custo) VALUES
 (-1, 'Não identificado')
 
 -- dim_categoria
 
 INSERT INTO dim_categoria(
     id_categoria, 
-    id_cc, 
+    id_centro_de_custo, 
     nome_categoria)
 SELECT 
     id_cat, 
@@ -56,8 +57,8 @@ FROM
 -- dim_fornecedores
 
 INSERT INTO dim_fornecedores(
-    id_forn, 
-    nome_forn)
+    id_fornecedor, 
+    nome_fornecedor)
 SELECT 
     id_forn, 
     nome_forn 
@@ -136,22 +137,23 @@ END
 
 -- dim_mes
 
-INSERT INTO dim_mes (ano_mes, ano, mes, primeiro_dia, ultimo_dia)
+INSERT INTO dim_mes (ano_mes, ano, mes, primeiro_dia, ultimo_dia, nome_mes, nome_mes_abrev)
 SELECT DISTINCT
     YEAR(data) * 100 + MONTH(data) AS id_mes,
     YEAR(data) AS ano,
     MONTH(data) AS mes,
     DATEFROMPARTS(YEAR(data), MONTH(data), 1) AS primeiro_dia,
-    EOMONTH(data) AS ultimo_dia
+    EOMONTH(data) AS ultimo_dia,
+    DATENAME(MONTH, [data]) AS nome_mes,
+    FORMAT([data], 'MMM') AS nome_mes_abrev
 FROM dim_calendario
-
 
 -- fact_lancamentos
 
 INSERT INTO  fact_lancamentos(
     id_lancamento, 
     data_lancamento, 
-    id_centro_custo, 
+    id_centro_de_custo, 
     id_categoria, 
     id_fornecedor, 
     id_campanha,
@@ -178,7 +180,7 @@ INSERT INTO fact_orcamento(
     data_orcamento,
     ano,
     mes,
-    id_centro_custo,
+    id_centro_de_custo,
     id_categoria,
     valor,
     status_dado
@@ -200,7 +202,7 @@ FROM vw_orcamento
 -------------------------------------------------------------------------------------------------------------------------------------------------
 SELECT 'dim_camp_marketing' AS Tabela, COUNT(*) AS Total_Registros FROM dim_camp_marketing
 UNION ALL
-SELECT 'dim_centro_custo' AS Tabela, COUNT(*) AS Total_Registros FROM dim_centro_custo
+SELECT 'dim_centro_de_custo' AS Tabela, COUNT(*) AS Total_Registros FROM dim_centro_de_custo
 UNION ALL
 SELECT 'dim_categoria' AS Tabela, COUNT(*) AS Total_Registros FROM dim_categoria
 UNION ALL
@@ -208,6 +210,9 @@ SELECT 'dim_fornecedores' AS Tabela, COUNT(*) AS Total_Registros FROM dim_fornec
 UNION ALL
 SELECT 'dim_calendario' AS Tabela, COUNT(*) AS Total_Registros FROM dim_calendario
 UNION ALL
+SELECT 'dim_mes' AS Tabela, COUNT(*) AS Total_Registros FROM dim_mes
+UNION ALL
 SELECT 'fact_lancamentos' AS Tabela, COUNT(*) AS Total_Registros FROM fact_lancamentos
 UNION ALL
 SELECT 'fact_orcamento' AS Tabela, COUNT(*) AS Total_Registros FROM fact_orcamento
+
