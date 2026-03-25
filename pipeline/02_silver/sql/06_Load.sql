@@ -5,7 +5,7 @@ TRUNCATE TABLE fact_lancamentos
 TRUNCATE TABLE fact_orcamento
 TRUNCATE TABLE dim_camp_marketing
 TRUNCATE TABLE dim_categoria
-TRUNCATE TABLE dim_centro_custo
+TRUNCATE TABLE dim_centro_de_custo
 TRUNCATE TABLE dim_fornecedores
 TRUNCATE TABLE dim_calendario
 
