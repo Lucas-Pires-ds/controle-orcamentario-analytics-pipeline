@@ -57,7 +57,7 @@ SELECT
        CAST(id_lancamento AS INT) AS 'id_lancamento',
        CAST(CAST(data_lancamento AS DATE) AS DATETIME) AS 'data_lancamento',
        CAST(CASE WHEN
-               id_centro_custo NOT IN (SELECT id_cc FROM dim_centro_custo)
+               id_centro_custo NOT IN (SELECT id_cc FROM stg_dim_centro_custo)
                 THEN -1 ELSE id_centro_custo END AS INT) AS 'id_cc',
        CAST(id_categoria AS INT) AS 'id_categoria',
        CAST(id_fornecedor AS INT) AS 'id_fornecedor',
@@ -118,9 +118,4 @@ UNION ALL
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_lancamentos'
 UNION ALL
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_orcamento'
-UNION ALL
-SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_gold_orcamento'
-UNION ALL
-SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_gold_lancamentos'
-UNION ALL
-SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'vw_gold_realizado'
+

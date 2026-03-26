@@ -138,7 +138,7 @@ SELECT
         id_centro_custo NOT IN (SELECT
                                      id_cc 
                                 FROM
-                                    dim_centro_custo)
+                                    stg_dim_centro_custo)
     ) AS 'ID_centro_custo_invalido',
     (SELECT
         COUNT(*)
@@ -148,7 +148,7 @@ SELECT
         id_categoria NOT IN (SELECT 
                                 id_categoria 
                             FROM
-                                dim_categoria)
+                                stg_dim_categoria)
     ) AS 'ID_categoria_invalido',
     (SELECT
         COUNT(*)
@@ -158,7 +158,7 @@ SELECT
         id_fornecedor NOT IN (SELECT
                                 id_forn 
                             FROM 
-                                dim_fornecedores)
+                                stg_dim_fornecedores)
     ) AS 'id_fornecedor_invalido',
     (SELECT
         COUNT(*)
@@ -168,7 +168,7 @@ SELECT
         CAST(CAST(id_campanha_marketing AS FLOAT) AS INT) NOT IN (SELECT
                                                                     id_camp 
                                                                 FROM 
-                                                                    dim_camp_marketing)
+                                                                    stg_dim_campanha)
     ) AS 'id_campanha_invalido'
 
 
@@ -176,15 +176,15 @@ SELECT
 
 SELECT DISTINCT 
     id_centro_custo
-FROM stg_lancamentos WHERE id_centro_custo NOT IN (SELECT id_cc FROM dim_centro_custo)
+FROM stg_lancamentos WHERE id_centro_custo NOT IN (SELECT id_cc FROM stg_dim_centro_custo)
 
 
--- UMA VEZ IDENTIFICADO 65 REGISTROS COM UM CENTRO DE CUSTO INVÁLIDO, RODAREI UMA QUERY PARA VISUALIZAR O IMPACTO FINANCEIRO DESSES REGISTROS:
+-- UMA VEZ IDENTIFICADO 62 REGISTROS COM UM CENTRO DE CUSTO INVÁLIDO, RODAREI UMA QUERY PARA VISUALIZAR O IMPACTO FINANCEIRO DESSES REGISTROS:
 
 SELECT
     FORMAT((SELECT SUM(CAST(valor_lancamento AS DECIMAL(18,2))) FROM stg_lancamentos), 'C')AS 'valor_total', 
-    FORMAT((SELECT SUM(CAST(valor_lancamento AS DECIMAL(18,2))) FROM stg_lancamentos WHERE id_centro_custo NOT IN (SELECT ID_CC FROM dim_centro_custo)), 'C') AS 'centro_custo_invalido', 
-    FORMAT((SELECT SUM(CAST(valor_lancamento AS DECIMAL(18,2))) FROM stg_lancamentos WHERE id_centro_custo NOT IN (SELECT ID_CC FROM dim_centro_custo)) / (SELECT SUM(CAST(valor_lancamento AS DECIMAL(18,2))) FROM stg_lancamentos), '0.00%') AS 'impacto_(%)'
+    FORMAT((SELECT SUM(CAST(valor_lancamento AS DECIMAL(18,2))) FROM stg_lancamentos WHERE id_centro_custo NOT IN (SELECT ID_CC FROM stg_dim_centro_custo)), 'C') AS 'centro_custo_invalido', 
+    FORMAT((SELECT SUM(CAST(valor_lancamento AS DECIMAL(18,2))) FROM stg_lancamentos WHERE id_centro_custo NOT IN (SELECT ID_CC FROM stg_dim_centro_custo)) / (SELECT SUM(CAST(valor_lancamento AS DECIMAL(18,2))) FROM stg_lancamentos), '0.00%') AS 'impacto_(%)'
 
 -- IMPACTO IDENTIFICADO = 0,57%
 
@@ -216,7 +216,7 @@ SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'stg_lancamentos'
 
 ESPACOS EXTRAS: 0 ENCONTRADOS. NENHUM TRATAMENTO NECESSÁRIO.
 
-NULOS OU VAZIOS: 27 REGISTROS COM DATAS NULAS ENCONTRADOS. IMPACTO FINANCEIRO IDENTIFICADO DE 0,15%. TRATAMENTO: DADOS SERÃO DESCARTADOS POR TEREM BAIXO 
+NULOS OU VAZIOS: 27 REGISTROS COM DATAS NULAS ENCONTRADOS. IMPACTO FINANCEIRO IDENTIFICADO DE 0,19%. TRATAMENTO: DADOS SERÃO DESCARTADOS POR TEREM BAIXO 
 IMPACTO FINANCEIRO, FRENTE O RISCO DE CORROMPIMENTO DE ANALISES TEMPORAIS.
 
 INTEGRIDADE REFERENCIAL DE CHAVES ESTRANGEIRAS: IDENTIFIQUEI 62 REGISTROS COM CENTRO DE CUSTO NÃO CADASTRADO, SENDO QUE TODOS OS REGISTROS FORAM REALIZADOS COM UM UNICO CENTRO DE CUSTO: O 999.
@@ -370,7 +370,7 @@ SELECT
         id_centro_custo NOT IN (SELECT
                                     id_cc
                                 FROM
-                                    dim_centro_custo)
+                                    stg_dim_centro_custo)
     ) AS 'id_cc_invalido',
     (SELECT
         COUNT(*)
@@ -380,7 +380,7 @@ SELECT
         id_categoria NOT IN (SELECT
                                     id_categoria
                                 FROM
-                                    dim_categoria)
+                                    stg_dim_categoria)
     ) AS 'id_categoria_invalido'
     
 
