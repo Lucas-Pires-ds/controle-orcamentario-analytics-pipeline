@@ -227,13 +227,6 @@ SELECT
                             CAL.Mes
        ), 0) - 1 AS 'YoY_perc',
 
-       AVG(Realizado) OVER (
-                     PARTITION BY
-                            B.Ano,
-                            B.ID_Centro_de_custo,
-                            B.ID_Categoria
-       ) AS 'Média_mensal',
-
        SUM(Realizado) OVER(
                      PARTITION BY 
                             B.ID_Centro_de_custo,
@@ -622,6 +615,6 @@ SELECT
               PARTITION BY 
                      YEAR(data_lancamento),
                      MONTH(data_lancamento)
-       ) AS 'Partipação no mês'
+       ) AS 'Participação no mês'
 FROM BASE
 GO
