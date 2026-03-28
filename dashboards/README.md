@@ -2,7 +2,7 @@
 
 ## Responsabilidade
 
-Camada de consumo final do pipeline. Consome diretamente as views da camada Gold sem transformações adicionais no Power Query. As agregações diárias, medianas históricas, YTD, MoM e YoY chegam prontos do SQL. O Power BI foca em relacionamentos, contexto de filtro e visualização.
+Camada de consumo final do pipeline. Consome diretamente as views da camada Gold sem transformações adicionais no Power Query, agregações diárias, medianas históricas, YTD, MoM e YoY chegam prontos do SQL. O Power BI foca em relacionamentos, contexto de filtro e visualização.
 
 O relatório está organizado em quatro páginas com contextos analíticos distintos: monitoramento preventivo intra-mês e análise executiva retrospectiva. A navegação entre páginas é feita pelo menu lateral com botões dedicados.
 
@@ -18,7 +18,7 @@ dashboards/
 └── controle_orcamentario.pbix
 ```
 
-Arquivo único com navegação interna por páginas — evita duplicação do modelo semântico, simplifica o versionamento e garante consistência de métricas entre as visões.
+Foi trabalhado um arquivo único com navegação interna por páginas para evitar duplicação do modelo semântico, simplificar o versionamento e garantir consistência de métricas entre as visões.
 
 ---
 
@@ -34,7 +34,7 @@ Monitoramento preventivo intra-mês: ritmo de consumo vs orçado ideal e semáfo
 - Gráfico de linhas com quatro séries: Orçado Ideal MTD, Realizado MTD, Mediana Histórica MTD e Projeção de Fechamento
 - Orçado Ideal calculado em DAX usando `peso_do_dia` — distribuição não-linear do orçamento mensal conforme ritmo real histórico de gastos
 - Projeção de fechamento baseada na taxa de gasto diária atual
-- Tabela de indicadores de risco por centro de custo com semáforo: acima do normal, risco de estouro, estouro confirmado e estouro do orçamento do ano.
+- Tabela de indicadores de risco por centro de custo com semáforo: estouro confirmado, atenção e dentro do esperado
 
 **Views consumidas:** `vw_gold_lancamentos`, `vw_gold_orcamento`, `vw_gold_referencia_mtd`
 
@@ -47,17 +47,17 @@ Detalhamento transacional do período com visão de pendências financeiras e ra
 ![Operacional — Detalhamento](../docs_e_imagens/dash_operacional_detalhamento.png)
 
 **Destaques:**
-- Tabela de lançamentos por dia com status de pagamento e % do período acumulado
+- Tabela de lançamentos agregados por dia, centro de custo, categoria e fornecedor com status de pagamento e % do período acumulado
 - KPIs de pendências: total pendente e % ainda pendente
-- Top 5 categorias e Top 5 fornecedores por valor gasto
+- Top 5 categorias e Top 5 fornecedores por volume
 
-**Views consumidas:** `vw_gold_lancamentos`, `vw_gold_orcamento`
+**View consumida:** `vw_gold_lancamentos_consolidados_dia`
 
 ---
 
 ### 3. Analytics — Performance Orçamentária
 
-Visão executiva sobre a aderência ao orçamento por mês e por centro de custo.
+Visão executiva retrospectiva sobre a aderência ao orçamento por mês e por centro de custo.
 
 ![Analytics — Performance Orçamentária](../docs_e_imagens/dash_analytics_performance.png)
 
@@ -83,9 +83,9 @@ Análise de crescimento e sazonalidade de gastos com comparativo entre anos.
 
 **Destaques:**
 - Gráfico de área comparando 2023 vs 2024 para leitura de sazonalidade
+- Gráfico de colunas com realizado mensal e YoY % mensal como rótulo — variação em relação ao mesmo mês do ano anterior
 - KPIs de variação: YoY (%), MoM (%), Acumulado vs LY
 - Top 5 centros de custo com maior crescimento YoY e Top 5 com maior crescimento MoM
-- Gráfico de dispersão de crescimento estrutural: YoY % × YoY Absoluto por centro de custo
 - Tooltip por mês: realizado, orçado, YoY, MoM e desvio vs orçado — cor indica estouro ou aderência
 - Métricas temporais chegam prontas da Gold via `LAG()` — calculadas no SQL, sem risco de distorção por meses sem lançamentos
 
@@ -95,7 +95,7 @@ Análise de crescimento e sazonalidade de gastos com comparativo entre anos.
 
 ## 🎯 Decisões Técnicas
 
-### Processamento na camada de dados
+### Cálculos no SQL, não no Power BI
 
 Cálculos estruturais são resolvidos no SQL Server (camada Gold) e chegam prontos para consumo. O Power BI foca em relacionamentos, contexto de filtro e visualização.
 
@@ -105,26 +105,38 @@ A `vw_gold_referencia_mtd` não é agregada via `SUM()`. É consultada pontualme
 
 ### Orçado Ideal não-linear
 
-O orçamento mensal é distribuído conforme o `peso_do_dia` — percentual mediano acumulado histórico por dia — em vez de distribuição linear. Reflete o ritmo real de consumo de cada área da empresa.
+O orçamento mensal é distribuído conforme o `peso_do_dia` (percentual mediano acumulado histórico por dia) em vez de distribuição linear. Reflete o ritmo real de consumo da empresa.
 
 ### Medida DAX central
 
 ```dax
-Orçado Ideal MTD =
-VAR DiaAtual = DAY(MAX(dim_calendario[data]))
-VAR PesoHistorico =
-    CALCULATE(
-        MAX(vw_gold_referencia_mtd[peso_do_dia]),
-        vw_gold_referencia_mtd[dia] = DiaAtual,
-        ALLEXCEPT(vw_gold_referencia_mtd, vw_gold_referencia_mtd[id_centro_custo], vw_gold_referencia_mtd[id_categoria])
-    )
-VAR OrcamentoMensal = [Total Orçado]
+Orçado Ideal MTD = 
+VAR DataAtual = [DATA_ATUAL]
+
+VAR IdMesAtual =
+    YEAR(DataAtual) * 100 + MONTH(DataAtual)
+
 RETURN
-    IF(
-        NOT ISBLANK(OrcamentoMensal) && NOT ISBLANK(PesoHistorico),
-        OrcamentoMensal * PesoHistorico,
-        BLANK()
-    )
+SUMX(
+    SUMMARIZE(
+        vw_gold_orcamento,
+        dim_centro_de_custo[id_centro_de_custo],
+        dim_categoria[id_categoria]
+    ),
+    VAR OrcamentoMensal =
+        CALCULATE(
+            SUM(vw_gold_orcamento[Orcado_mensal]),
+            dim_mes[ano_mes] = IdMesAtual
+        )
+
+    VAR PesoHistorico =
+        CALCULATE(
+            MAX(vw_gold_referencia_mtd[peso_do_dia])
+        )
+
+    RETURN
+        OrcamentoMensal * PesoHistorico
+)
 ```
 
 ---
@@ -135,8 +147,13 @@ RETURN
 |---|---|---|---|---|
 | `vw_gold_orcamento` | Fato | Mensal | ✅ Sim | Planejamento financeiro |
 | `vw_gold_realizado` | Fato | Mensal | ✅ Sim | Análise executiva retrospectiva |
-| `vw_gold_lancamentos` | Fato | Diária | ✅ Sim | KPIs operacionais, tabela de lançamentos |
-| `vw_gold_lancamentos_diarios` | Fato | Diária | ✅ Sim | Grid diário completo com acumulado MTD |
+| `vw_gold_lancamentos` | Fato | Por lançamento | ✅ Sim | KPIs operacionais |
+| `vw_gold_lancamentos_consolidados_dia` | Fato | Diária agregada | ✅ Sim | Tabela de detalhamento |
+| `vw_gold_lancamentos_diarios` | Fato | Diária completa | ✅ Sim | Grid diário com acumulado MTD |
 | `vw_gold_referencia_mtd` | Referência | Dia do mês | ❌ Não | Linhas de benchmark e orçado ideal |
 
-Relacionamentos via `dim_calendario` (data), `id_centro_custo` e `id_categoria`. 
+Relacionamentos via `dim_calendario` (data), `id_centro_de_custo` e `id_categoria`. A `vw_gold_referencia_mtd` não possui relacionamento direto com a dimensão de datas, ela é filtrada pelo campo `dia` de forma independente.
+
+---
+
+O dashboard fecha o ciclo do pipeline: dados que chegaram brutos, inconsistentes e dispersos na Bronze são entregues aqui como informação confiável e pronta para decisão. Do monitoramento intra-mês à análise retrospectiva, cada visual consome uma base que já passou por diagnóstico, limpeza e modelagem.

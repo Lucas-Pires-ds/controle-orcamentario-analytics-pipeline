@@ -203,7 +203,7 @@ Após aplicação das regras de ETL e qualidade:
 *Visão executiva retrospectiva: orçado vs realizado com linha de desvio e matriz de performance por centro de custo × mês*
 
 ![Analytics — Evolução e Tendências](docs_e_imagens/dash_analytics_tendencias.png)
-*Análise de crescimento: comparativo YoY, ranking de crescimento estrutural e top 5 centros de custo com maior variação*
+*Análise de crescimento: comparativo 2023 vs 2024, YoY % por mês e rankings de Top 5 por centro de custo*
 
 ---
 
