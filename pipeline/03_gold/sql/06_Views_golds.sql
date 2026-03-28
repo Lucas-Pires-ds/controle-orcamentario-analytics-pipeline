@@ -15,23 +15,23 @@ WITH BASE AS (
               SELECT 
                      FO.ano AS 'Ano',
                      FO.mes AS 'Mes',
-                     CC.id_cc AS 'ID_Centro_de_custo',
-                     CC.nome_cc AS 'Centro_de_custo',
+                     CC.id_centro_de_custo AS 'ID_Centro_de_custo',
+                     CC.nome_centro_de_custo AS 'Centro_de_custo',
                      FO.id_categoria AS 'ID_Categoria',
                      CAT.nome_categoria AS 'Categoria',
                      SUM(FO.valor) AS 'Orcado',
                      FO.status_dado AS 'Status_dado'
               FROM
               fact_orcamento FO
-                     LEFT JOIN dim_centro_custo CC  
-                            ON CC.id_cc = FO.id_centro_custo
+                     LEFT JOIN dim_centro_de_custo CC  
+                            ON CC.id_centro_de_custo = FO.id_centro_de_custo
                      LEFT JOIN dim_categoria CAT  
                             ON CAT.id_categoria = FO.id_categoria
               GROUP BY 
                      FO.ano, 
                      FO.mes, 
-                     CC.id_cc, 
-                     CC.nome_cc, 
+                     CC.id_centro_de_custo, 
+                     CC.nome_centro_de_custo, 
                      FO.id_categoria, 
                      CAT.nome_categoria, 
                      FO.status_dado
@@ -122,9 +122,6 @@ LEFT JOIN MEDIANAS M
     AND M.ID_Centro_de_custo = B.ID_Centro_de_custo
     AND M.ID_Categoria = B.ID_Categoria
     AND M.Status_dado = B.Status_dado
-GO
-
-SELECT * FROM vw_gold_orcamento WHERE Flag_valor_atipico_orcamento = 'Valor_atipico'
 
 GO
 
@@ -138,26 +135,26 @@ SELECT
        YEAR(FL.data_lancamento) AS 'Ano',
        MONTH(FL.data_lancamento) AS 'Mes',
        (YEAR(FL.data_lancamento) * 100) + MONTH(FL.data_lancamento) AS 'Ano_mes',
-       FL.id_centro_custo AS 'ID_Centro_de_custo',
-       CC.nome_cc AS 'Centro_de_custo',
+       FL.id_centro_de_custo AS 'ID_Centro_de_custo',
+       CC.nome_centro_de_custo AS 'Centro_de_custo',
        CAT.id_categoria AS 'ID_Categoria',
        CAT.nome_categoria AS 'Categoria',
        SUM(FL.valor) AS 'Realizado',
        CASE 
-              WHEN FL.id_centro_custo = -1 THEN 'Sim' 
+              WHEN FL.id_centro_de_custo = -1 THEN 'Sim' 
               ELSE 'Nao' 
               END AS 'Flag_centro_custo_coringa'       
 FROM fact_lancamentos FL
-       LEFT JOIN dim_centro_custo CC
-              ON CC.id_cc = FL.id_centro_custo
+       LEFT JOIN dim_centro_de_custo CC
+              ON CC.id_centro_de_custo = FL.id_centro_de_custo
        LEFT JOIN dim_categoria CAT  
               ON CAT.id_categoria = FL.id_categoria
 GROUP BY
        YEAR(FL.data_lancamento),
        MONTH(FL.data_lancamento),
        (YEAR(FL.data_lancamento) * 100) + MONTH(FL.data_lancamento),
-       FL.id_centro_custo,
-       CC.nome_cc,
+       FL.id_centro_de_custo,
+       CC.nome_centro_de_custo,
        CAT.id_categoria,
        CAT.nome_categoria
 ),
@@ -302,13 +299,13 @@ CREATE OR  ALTER VIEW vw_gold_lancamentos AS
 SELECT 
        FL.id_lancamento,
        FL.data_lancamento,
-       CC.id_cc AS 'id_centro_de_custo',
-       CC.nome_cc AS 'centro_de_custo',
+       CC.id_centro_de_custo AS 'id_centro_de_custo',
+       CC.nome_centro_de_custo AS 'centro_de_custo',
        CAT.id_categoria AS 'id_categoria',
        CAT.nome_categoria AS 'categoria',
-       DF.id_forn AS 'id_fornecedor',
-       DF.nome_forn AS 'fornecedor',
-       MKT.id_camp AS 'id_campanha',
+       DF.id_fornecedor AS 'id_fornecedor',
+       DF.nome_fornecedor AS 'fornecedor',
+       MKT.id_campanha AS 'id_campanha',
        MKT.nome_campanha AS 'campanha_de_marketing',
        FL.valor,
        FL.valor_original,
@@ -317,7 +314,7 @@ SELECT
                      PARTITION BY 
                             YEAR(FL.data_lancamento),
                             MONTH(data_lancamento),
-                            FL.id_centro_custo,
+                            FL.id_centro_de_custo,
                             FL.id_categoria,
                             FL.id_fornecedor,
                             FL.id_campanha
@@ -330,7 +327,7 @@ SELECT
                      PARTITION BY 
                             YEAR(FL.data_lancamento),
                             MONTH(data_lancamento),
-                            FL.id_centro_custo,
+                            FL.id_centro_de_custo,
                             FL.id_categoria
                      ORDER BY 
                             FL.data_lancamento ASC,
@@ -342,17 +339,17 @@ SELECT
 FROM 
        fact_lancamentos FL  
 LEFT JOIN 
-       dim_centro_custo CC
-              ON CC.id_cc = FL.id_centro_custo
+       dim_centro_de_custo CC
+              ON CC.id_centro_de_custo = FL.id_centro_de_custo
 LEFT JOIN 
        dim_categoria CAT  
               ON CAT.id_categoria = FL.id_categoria
 LEFT JOIN 
        dim_fornecedores DF 
-              ON DF.id_forn = FL.id_fornecedor
+              ON DF.id_fornecedor = FL.id_fornecedor
 LEFT JOIN 
        dim_camp_marketing MKT 
-              ON MKT.id_camp = FL.id_campanha
+              ON MKT.id_campanha = FL.id_campanha
 
 -- VW_GOLD_REFERENCIA_MTD
 
@@ -363,19 +360,19 @@ CREATE OR ALTER VIEW vw_gold_referencia_mtd AS
 WITH FACT_DIARIA AS (
        SELECT
               data_lancamento,
-              id_centro_custo,
+              id_centro_de_custo,
               id_categoria,
               SUM(valor) AS 'total_do_dia'
        FROM fact_lancamentos
        GROUP BY 
               data_lancamento,
-              id_centro_custo,
+              id_centro_de_custo,
               id_categoria
        
 ),
 LISTA_CC_CAT AS (
        SELECT DISTINCT 
-              id_centro_custo,
+              id_centro_de_custo,
               id_categoria
        FROM fact_lancamentos
 ),
@@ -386,7 +383,7 @@ BASE_CALENDARIO AS (
               CAL.dia,
               CAL.[data] AS 'data_lancamento',
               DATEFROMPARTS(CAL.ano, CAL.mes, 1) AS 'mes_ref',
-              L.id_centro_custo,
+              L.id_centro_de_custo,
               L.id_categoria
        FROM dim_calendario CAL 
        CROSS JOIN LISTA_CC_CAT L  
@@ -399,7 +396,7 @@ HISTORICO AS (
        FROM BASE_CALENDARIO BC  
        LEFT JOIN FACT_DIARIA FD  
               ON FD.data_lancamento = BC.data_lancamento
-              AND FD.id_centro_custo = BC.id_centro_custo
+              AND FD.id_centro_de_custo = BC.id_centro_de_custo
               AND FD.id_categoria = BC.id_categoria
 ),
 ACUMULADOS AS (
@@ -409,7 +406,7 @@ ACUMULADOS AS (
                      PARTITION BY
                             ano,
                             mes,
-                            id_centro_custo,
+                            id_centro_de_custo,
                             id_categoria
                      ORDER BY
                             data_lancamento
@@ -418,7 +415,7 @@ ACUMULADOS AS (
                      PARTITION BY
                             ano,
                             mes,
-                            id_centro_custo,
+                            id_centro_de_custo,
                             id_categoria
        ) AS 'total_do_mes' 
 FROM HISTORICO),
@@ -431,20 +428,20 @@ FINAL AS (
 )
 SELECT DISTINCT
        dia,
-       id_centro_custo,
+       id_centro_de_custo,
        id_categoria,
        PERCENTILE_CONT(0.5)
               WITHIN GROUP (ORDER BY perc_gasto_mes) OVER(
                             PARTITION BY 
                                    dia,
-                                   id_centro_custo,
+                                   id_centro_de_custo,
                                    id_categoria
               ) AS 'peso_do_dia',
        PERCENTILE_CONT(0.5)
               WITHIN GROUP (ORDER BY gasto_MTD) OVER(
                             PARTITION BY 
                                    dia,
-                                   id_centro_custo,
+                                   id_centro_de_custo,
                                    id_categoria
               ) AS 'valor_mediano_dia'
 FROM FINAL
@@ -452,19 +449,19 @@ UNION ALL
 
 SELECT DISTINCT
        dia,
-       id_centro_custo,
+       id_centro_de_custo,
        -999 AS 'id_categoria',  -- VALOR ESPECIAL PARA INDICAR "TODAS AS CATEGORIAS"
        PERCENTILE_CONT(0.5)
               WITHIN GROUP (ORDER BY perc_gasto_mes) OVER(
                             PARTITION BY 
                                    dia,
-                                   id_centro_custo
+                                   id_centro_de_custo
               ) AS 'peso_do_dia',
        PERCENTILE_CONT(0.5)
               WITHIN GROUP (ORDER BY gasto_MTD) OVER(
                             PARTITION BY 
                                    dia,
-                                   id_centro_custo
+                                   id_centro_de_custo
               ) AS 'valor_mediano_dia'
 FROM FINAL
 
@@ -473,7 +470,7 @@ UNION ALL
 -- PESO AGREGADO POR CATEGORIA (SEM CENTRO DE CUSTO)
 SELECT DISTINCT
        dia,
-       -999 AS 'id_centro_custo',  -- VALOR ESPECIAL PARA INDICAR "TODOS OS CENTROS"
+       -999 AS 'id_centro_de_custo',  -- VALOR ESPECIAL PARA INDICAR "TODOS OS CENTROS"
        id_categoria,
        PERCENTILE_CONT(0.5)
               WITHIN GROUP (ORDER BY perc_gasto_mes) OVER(
@@ -494,7 +491,7 @@ UNION ALL
 -- PESO GERAL (SEM FILTRO NENHUM)
 SELECT DISTINCT
        dia,
-       -999 AS 'id_centro_custo',
+       -999 AS 'id_centro_de_custo',
        -999 AS 'id_categoria',
        PERCENTILE_CONT(0.5)
               WITHIN GROUP (ORDER BY perc_gasto_mes) OVER(
@@ -506,29 +503,6 @@ SELECT DISTINCT
               ) AS 'valor_mediano_dia'
 FROM FINAL
 
-go
-
-SELECT  
-       DAY(data_lancamento) AS DIA,
-       centro_de_custo,
-       -- categoria,
-       -- fornecedor,
-       -- campanha_de_marketing,
-       SUM(valor) AS 'VALOR',
-       -- SUM(gasto_MTD) AS 'GASTOS MTD',
-       SUM(gasto_MTD_CC_CAT) AS 'GASTOS MTD CC CAT'
-FROM vw_gold_lancamentos
-WHERE centro_de_custo = 'Financeiro'
-AND data_lancamento BETWEEN '20241101' 
-AND '20241120' AND status_pagamento = 'Pago'
-GROUP BY
-       DAY(data_lancamento),
-       centro_de_custo
-       -- categoria
-       -- fornecedor,
-       -- campanha_de_marketing
-ORDER BY DAY(DATA_LANCAMENTO)
-
 GO
 
 CREATE OR ALTER VIEW vw_gold_lancamentos_diarios AS
@@ -536,18 +510,18 @@ CREATE OR ALTER VIEW vw_gold_lancamentos_diarios AS
 WITH LANCAMENTOS_BASE AS (
     SELECT 
         FL.data_lancamento,
-        CC.id_cc AS id_centro_custo,
+        CC.id_centro_de_custo AS id_centro_de_custo,
         CAT.id_categoria,
         REPLACE(FL.status_pagamento, 'Aberto', 'Pendente') AS status_pagamento,
         SUM(FL.valor) AS valor_dia
     FROM fact_lancamentos FL
-    LEFT JOIN dim_centro_custo CC ON CC.id_cc = FL.id_centro_custo
+    LEFT JOIN dim_centro_de_custo CC ON CC.id_centro_de_custo = FL.id_centro_de_custo
     LEFT JOIN dim_categoria CAT ON CAT.id_categoria = FL.id_categoria
-    GROUP BY FL.data_lancamento, CC.id_cc, CAT.id_categoria, REPLACE(FL.status_pagamento, 'Aberto', 'Pendente')
+    GROUP BY FL.data_lancamento, CC.id_centro_de_custo, CAT.id_categoria, REPLACE(FL.status_pagamento, 'Aberto', 'Pendente')
 ),
 COMBINACOES AS (
     SELECT DISTINCT 
-        id_centro_custo,
+        id_centro_de_custo,
         id_categoria,
         status_pagamento
     FROM LANCAMENTOS_BASE
@@ -558,7 +532,7 @@ GRID_COMPLETO AS (
         YEAR(C.data) AS ano,
         MONTH(C.data) AS mes,
         DAY(C.data) AS dia,
-        CB.id_centro_custo,
+        CB.id_centro_de_custo,
         CB.id_categoria,
         CB.status_pagamento
     FROM dim_calendario C
@@ -571,14 +545,14 @@ DADOS_COMPLETOS AS (
         G.ano,
         G.mes,
         G.dia,
-        G.id_centro_custo,
+        G.id_centro_de_custo,
         G.id_categoria,
         G.status_pagamento,
         COALESCE(L.valor_dia, 0) AS valor_dia
     FROM GRID_COMPLETO G
     LEFT JOIN LANCAMENTOS_BASE L 
         ON L.data_lancamento = G.data
-        AND L.id_centro_custo = G.id_centro_custo
+        AND L.id_centro_de_custo = G.id_centro_de_custo
         AND L.id_categoria = G.id_categoria
         AND L.status_pagamento = G.status_pagamento
 ),
@@ -588,12 +562,12 @@ ACUMULADOS AS (
         ano,
         mes,
         dia,
-        id_centro_custo,
+        id_centro_de_custo,
         id_categoria,
         status_pagamento,
         valor_dia,
         SUM(valor_dia) OVER (
-            PARTITION BY ano, mes, id_centro_custo, id_categoria, status_pagamento
+            PARTITION BY ano, mes, id_centro_de_custo, id_categoria, status_pagamento
             ORDER BY data
             ROWS UNBOUNDED PRECEDING
         ) AS gasto_MTD_CC_CAT
@@ -604,12 +578,12 @@ SELECT
     ano,
     mes,
     dia,
-    id_centro_custo,
+    id_centro_de_custo,
     id_categoria,
     status_pagamento,
     SUM(gasto_MTD_CC_CAT) AS gasto_MTD_agregado
 FROM ACUMULADOS
-GROUP BY data_lancamento, ano, mes, dia, id_centro_custo, id_categoria, status_pagamento
+GROUP BY data_lancamento, ano, mes, dia, id_centro_de_custo, id_categoria, status_pagamento
 
 GO
 
