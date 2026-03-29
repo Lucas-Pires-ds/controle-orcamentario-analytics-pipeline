@@ -1,6 +1,7 @@
 # 📊 Controle Orçamentário — Pipeline de Dados e Analytics
 
-> Pipeline completo de ETL simulando gestão orçamentária corporativa, com foco em qualidade de dados e modelagem dimensional
+> Pipeline de dados end-to-end para controle orçamentário, com foco em qualidade, rastreabilidade e modelagem analítica em um cenário corporativo simulado
+
 
 ---
 
@@ -13,21 +14,23 @@ O objetivo não é apenas gerar visualizações, mas construir uma **infraestrut
 * Baixa padronização de dados na origem
 * Falhas de integridade referencial
 * Inconsistências semânticas
-* Ausência de validações antes da análise
+* Dependência de tratamentos manuais no BI
+
+A solução proposta organiza e trata esses problemas na camada de dados, garantindo que o consumo analítico ocorra sobre uma base consistente, validada e rastreável.
 
 ---
 
 ## 🏢 Contexto de Negócio
 
-**Sage** é uma empresa fictícia do setor de serviços criada como contexto para este projeto de portfólio.
+**Sage** é uma empresa fictícia do setor de serviços criada como contexto para simular um cenário realista de gestão orçamentária.
 
 ### Problema Simulado
 
-Empresas de serviços frequentemente enfrentam desafios na gestão orçamentária:
+Empresas de serviços frequentemente enfrentam desafios para consolidar e analisar dados financeiros:
 
-* Dados financeiros provenientes de múltiplas fontes
+* Múltiplas fontes de dados sem padronização 
 * Dificuldade em consolidar orçado vs realizado
-* Baixa confiabilidade dos indicadores financeiros
+* Indicadores inconsistentes ou pouco confiáveis 
 * Dependência excessiva de tratamentos manuais no BI
 
 Este projeto simula esse cenário e propõe uma abordagem estruturada para lidar com esses problemas.
@@ -52,7 +55,7 @@ O projeto segue o padrão **Medallion Architecture** (Bronze → Silver → Gold
 ### Camadas implementadas:
 
 * **🥉 Bronze**
-  Ingestão de dados brutos via `BULK INSERT`, preservando o formato original sem aplicar regras de negócio. Todas as colunas chegam como `VARCHAR` — a tipagem é responsabilidade da Silver.
+  Ingestão de dados brutos via `BULK INSERT`, preservando o formato original sem aplicar regras de negócio. Todas as colunas chegam como `VARCHAR`, pois a tipagem é responsabilidade da Silver.
 
 * **🥈 Silver**
   Aplicação de validações de qualidade, padronizações e modelagem dimensional (Star Schema), garantindo integridade referencial e consistência semântica.
@@ -83,16 +86,16 @@ Este repositório está organizado em **dois níveis de documentação**:
 
 ### 📄 Nível 1: Visão Geral (este README)
 
-Contexto de negócio, arquitetura geral e resultados do projeto
+Apresenta o problema, a solução, a arquitetura e os resultados do projeto.
 
-### 📂 Nível 2: Documentação Técnica Detalhada
+### 📂 Nível 2: Documentação Técnica 
 
-Cada camada do pipeline possui documentação técnica específica em seu diretório:
+Detalhamento completo de cada etapa do pipeline:
 
 * **[pipeline/](pipeline)** → Conceitos da Medallion Architecture
-  + **[pipeline/bronze/](pipeline/01_bronze)** → Ingestão e scripts SQL
-  + **[pipeline/silver/](pipeline/02_silver)** → Validações, transformações e modelo dimensional
-  + **[pipeline/gold/](pipeline/03_gold)** → Views analíticas e métricas calculadas
+  + **[pipeline/bronze/](pipeline/01_bronze)** → Ingestão
+  + **[pipeline/silver/](pipeline/02_silver)** → Validações, transformações e modelagem
+  + **[pipeline/gold/](pipeline/03_gold)** → Camada analítica e métricas 
 * **[dashboards/](dashboards)** → Visualizações Power BI e decisões de BI
 
 ---
@@ -127,23 +130,23 @@ Cada camada do pipeline possui documentação técnica específica em seu diret�
 
 **Escolha da Medallion Architecture**
 
-O problema central do projeto é que os dados chegam sujos — espaços extras, IDs inválidos, tipos errados, status inconsistentes. Isso indica que era preciso um lugar para guardar esses dados sem perder a origem, outro para tratá-los, e outro para servir o dashboard. A separação em Bronze, Silver e Gold resolve exatamente isso: qualquer inconsistência que aparecer depois pode ser rastreada até a fonte sem precisar reprocessar tudo do zero. As regras de negócio ficam centralizadas na Silver, então o Power BI consome dados já tratados em vez de reimplementar validações em DAX.
+Os dados chegam com inconsistências estruturais. A separação em Bronze, Silver e Gold permite isolar essas etapas, garantindo tratamento antes do consumo e mantendo rastreabilidade completa.
 
 **Transformações no SQL, não no DAX**
 
-Se a lógica de negócio vive no DAX, ela só existe dentro do Power BI. Qualquer outra consulta ao banco recebe o dado bruto. Manter as transformações no SQL garante que o dado já saia tratado independente de quem ou o que estiver consultando. Também é mais eficiente, o SQL lida com volume muito melhor do que Pandas ou DAX.
+As regras de negócio são aplicadas na camada de dados, garantindo consistência independentemente da ferramenta de consumo.
 
 **dim_calendario e integridade dos cálculos temporais**
 
-`LAG()` conta posições na partição, não meses no calendário. Se não houver lançamentos em algum mês, o `LAG(1)` compara com o mês anterior que *tem* dados — não com o mês imediatamente anterior. O resultado parece correto mas está errado. O `RIGHT JOIN` com a `dim_calendario` força a existência de todos os meses no período com valor zero quando necessário, garantindo que o LAG sempre compare o que deve comparar.
+A dimensão calendário garante continuidade dos períodos, evitando distorções em análises temporais.
 
 **Mediana em vez de média no benchmark diário**
 
-O diagnóstico da `fact_orcamento` encontrou outliers com valores entre 8x e 10x a média — erros de digitação nos dados de orçamento. Usar média como benchmark puxaria o `peso_do_dia` para cima e geraria alertas falsos no dashboard operacional. A mediana ignora esses extremos e reflete o comportamento típico da série.
+A mediana foi adotada para evitar distorções causadas por outliers identificados na base de orçamento.
 
 **CROSS JOIN para o grid diário**
 
-O acumulado MTD precisa de uma linha para cada combinação de `data × centro_de_custo × categoria`, inclusive nos dias sem lançamento. Sem isso, os dias sem movimento simplesmente não existem na série e as curvas do dashboard ficam com saltos. O `CROSS JOIN` entre a `dim_calendario` e as combinações distintas de centro de custo e categoria gera esse grid completo. O `LEFT JOIN` posterior preenche os dias com movimento e mantém zero nos demais.
+A construção de um grid completo garante continuidade das séries temporais e consistência nos cálculos de acumulado.
 
 ---
 
@@ -185,7 +188,7 @@ Após aplicação das regras de ETL e qualidade:
 * ✅ 16+ métricas analíticas disponíveis (YTD, MoM, YoY, etc)
 * ✅ Métricas de Orçado vs Realizado com regras de negócio explícitas
 * ✅ Risco de erros silenciosos mitigado na camada de dados
-* ✅ Dashboard com 4 páginas funcionais entregue — visão operacional preventiva e análise executiva retrospectiva
+* ✅ Dashboard com 4 páginas funcionais entregue: visão operacional preventiva e análise executiva retrospectiva
 
 ---
 
@@ -237,21 +240,26 @@ BULK INSERT stg_lancamentos
 FROM 'C:\seu_caminho\data\raw\fact_lancamentos.csv' ...
 ```
 
-Os arquivos CSV já estão incluídos no repositório em `data/raw/` — não é necessário gerá-los.
+Os arquivos CSV já estão incluídos no repositório em `data/raw/`, não é necessário gerá-los.
 
 **4. Execute os scripts SQL na ordem**
 
 ```
 pipeline/01_bronze/sql/01_Ingestao_de_dados.sql
-pipeline/02_silver/sql/02_Criacao_de_tabelas.sql
-pipeline/02_silver/sql/03_Diagnostico_de_dados_dimensoes.sql  - opcional, apenas leitura
-pipeline/02_silver/sql/04_Diagnostico_de_dados_facts.sql      - opcional, apenas leitura
-pipeline/02_silver/sql/05_Views_e_Transformacoes.sql
-pipeline/02_silver/sql/06_Carga_de_dados.sql
-pipeline/03_gold/sql/07_Views_golds.sql
+pipeline/02_silver/sql/02.1_EDA_dimensoes.sql  - opcional, apenas leitura
+pipeline/02_silver/sql/02.2_EDA_facts.sql      - opcional, apenas leitura
+pipeline/02_silver/sql/03_Transform.sql
+pipeline/02_silver/sql/04_Criacao_de_tabelas.sql
+pipeline/02_silver/sql/05_Load.sql
+pipeline/03_gold/sql/06_vw_gold_lancamentos_consolidados_dia.sql
+pipeline/03_gold/sql/06_vw_gold_lancamentos_diarios.sql
+pipeline/03_gold/sql/06_vw_gold_lancamentos.sql
+pipeline/03_gold/sql/06_vw_gold_orcamento.sql
+pipeline/03_gold/sql/06_vw_gold_realizado.sql
+pipeline/03_gold/sql/06_vw_gold_referencia.sql
 ```
 
-> Os scripts de diagnóstico (03 e 04) documentam a análise exploratória que fundamentou as decisões de tratamento. Não precisam ser executados para o pipeline funcionar, mas são recomendados para entender o raciocínio de cada transformação.
+> Os scripts de diagnóstico (02.1 e 02.2) documentam a análise exploratória que fundamentou as decisões de tratamento. Não precisam ser executados para o pipeline funcionar, mas são recomendados para entender o raciocínio de cada transformação.
 
 **5. Conecte o Power BI**
 
@@ -271,7 +279,7 @@ O escopo atual cobre o pipeline de dados e o dashboard analítico. Algumas evolu
 
 ## 📌 Status
 
-**Status atual:** Projeto concluído — pipeline end-to-end implementado e dashboard entregue.
+**Status atual:** Projeto concluído! pipeline end-to-end implementado e dashboard entregue.
 
 | Camada | Status |
 |---|---|
