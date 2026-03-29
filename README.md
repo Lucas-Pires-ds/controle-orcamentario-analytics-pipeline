@@ -14,7 +14,7 @@ O objetivo não é apenas gerar visualizações, mas construir uma **infraestrut
 * Baixa padronização de dados na origem
 * Falhas de integridade referencial
 * Inconsistências semânticas
-* Dependência de tratamentos manuais no BI
+* Ausência de validações antes da análise
 
 A solução proposta organiza e trata esses problemas na camada de dados, garantindo que o consumo analítico ocorra sobre uma base consistente, validada e rastreável.
 
@@ -28,7 +28,7 @@ A solução proposta organiza e trata esses problemas na camada de dados, garant
 
 Empresas de serviços frequentemente enfrentam desafios para consolidar e analisar dados financeiros:
 
-* Múltiplas fontes de dados sem padronização 
+* Dados financeiros provenientes de múltiplas fontes 
 * Dificuldade em consolidar orçado vs realizado
 * Indicadores inconsistentes ou pouco confiáveis 
 * Dependência excessiva de tratamentos manuais no BI
