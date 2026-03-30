@@ -65,7 +65,7 @@ Visão executiva retrospectiva sobre a aderência ao orçamento por mês e por c
 
 **Destaques:**
 - Gráfico combinado: barras agrupadas (Orçado vs Realizado) com linha de desvio sobreposta
-- KPIs anuais: Orçado YTD, Realizado YTD, Desvio Absoluto e Desvio Percentual
+- KPIs anuais: Orçado YTD, Realizado YTD, Orçamento disponível abs. e Orçamento consumido
 - Matriz de desvio por centro de custo × mês com formatação condicional por intensidade
 - Tooltip por mês: orçado, realizado, desvio do mês, desvio acumulado YTD — cor indica estouro ou aderência
 
