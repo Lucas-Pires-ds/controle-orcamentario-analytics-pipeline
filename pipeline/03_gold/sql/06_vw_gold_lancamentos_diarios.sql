@@ -11,7 +11,11 @@ WITH LANCAMENTOS_BASE AS (
     FROM fact_lancamentos FL
     LEFT JOIN dim_centro_de_custo CC ON CC.id_centro_de_custo = FL.id_centro_de_custo
     LEFT JOIN dim_categoria CAT ON CAT.id_categoria = FL.id_categoria
-    GROUP BY FL.data_lancamento, CC.id_centro_de_custo, CAT.id_categoria, REPLACE(FL.status_pagamento, 'Aberto', 'Pendente')
+    GROUP BY 
+        FL.data_lancamento, 
+        CC.id_centro_de_custo, 
+        CAT.id_categoria, 
+        REPLACE(FL.status_pagamento, 'Aberto', 'Pendente')
 ),
 COMBINACOES AS (
     SELECT DISTINCT 
@@ -61,7 +65,12 @@ ACUMULADOS AS (
         status_pagamento,
         valor_dia,
         SUM(valor_dia) OVER (
-            PARTITION BY ano, mes, id_centro_de_custo, id_categoria, status_pagamento
+            PARTITION BY 
+                    ano, 
+                    mes, 
+                    id_centro_de_custo, 
+                    id_categoria, 
+                    status_pagamento
             ORDER BY data
             ROWS UNBOUNDED PRECEDING
         ) AS gasto_MTD_CC_CAT
