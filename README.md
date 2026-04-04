@@ -109,7 +109,6 @@ Detalhamento completo de cada etapa do pipeline:
 ├── 📂 dashboards/        # Visualizações Power BI
 ├── 📂 data/              # Dados sintéticos (CSVs prontos para uso)
 ├── 📂 docs_e_imagens/    # Diagramas e documentação visual
-├── 📄 registros.md       # Diário de desenvolvimento
 └── 📄 README.md          # Este arquivo
 ```
 
